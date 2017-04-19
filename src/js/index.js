@@ -1,6 +1,3 @@
+import buttons from './interface/buttons';
 
-function dupa() {
-    return 'dupa';
-}
-
-dupa();
+buttons();
