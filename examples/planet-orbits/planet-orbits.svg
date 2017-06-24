@@ -3,6 +3,6 @@
 <circle id="sun" cx="250" cy="250" r="50" fill="black"/>
 <circle id="planet" cx="100" cy="100" r="5" fill="#888"/>
 
-<script type="text/ecmascript" xlink:href="../../dist/js/script.js" />
+<script type="text/ecmascript" xlink:href="../../dist/js/svganimation.js" />
 <script type="text/ecmascript" xlink:href="planet-orbits.js" />
 </svg>

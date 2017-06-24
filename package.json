@@ -1,26 +1,41 @@
 {
   "name": "svg-animation",
-  "version": "0.1.0",
-  "main": "index.js",
-  "repository": "https://github.com/M-51/svg-animation.git",
-  "author": "m51@m51.pl",
+  "version": "0.0.1",
+  "description": "Library that helps animating svg objects",
+  "main": "./src/js/index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M-51/svg-animation.git"
+  },
+  "keywords": [
+    "svg",
+    "animation",
+    "javascript"
+  ],
+  "author": "M51",
   "license": "MIT",
-  "dependencies": {},
+  "bugs": {
+    "url": "https://github.com/M-51/svg-animation/issues"
+  },
+  "homepage": "https://github.com/M-51/svg-animation#readme",
   "devDependencies": {
-    "babel-preset-es2015": "^6.24.1",
-    "babili": "^0.0.12",
     "eslint": "^3.19.0",
-    "eslint-config-airbnb": "^14.1.0",
+    "eslint-config-airbnb": "^15.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^4.0.0",
-    "eslint-plugin-react": "^6.10.3",
-    "gulp": "^3.9.1",
-    "gulp-babel": "^6.1.2",
+    "eslint-plugin-jsx-a11y": "^5.0.1",
+    "eslint-plugin-react": "^7.0.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-babili": "^0.1.4",
+    "gulp-better-rollup": "^1.1.1",
+    "gulp-brotli": "^1.2.0",
     "gulp-gzip": "^1.4.0",
     "gulp-rename": "^1.2.2",
-    "gulp-sourcemaps": "^2.6.0",
-    "rollup-stream": "^1.19.0",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "gulp-sourcemaps": "^2.6.0"
   }
 }
