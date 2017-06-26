@@ -1,1 +1,3 @@
-
+const settings = {
+    showInterface: false,
+};
