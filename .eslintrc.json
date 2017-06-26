@@ -1,6 +1,14 @@
 {
     "extends": "airbnb",
 
+    "env": {
+        "browser": true
+    },
+
+    "globals": {
+        "settings": true
+    },
+
     "rules":{
         "indent": [
             "error", 4

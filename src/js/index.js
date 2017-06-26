@@ -1,3 +1,8 @@
 import buttons from './interface/buttons';
+import { compileSettings } from './settings';
 
-buttons();
+document.addEventListener('DOMContentLoaded', () => {
+    compileSettings();
+    buttons();
+});
+

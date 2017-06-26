@@ -1,5 +1,3 @@
-(function () {
-'use strict';
 
 const defaultSettings = {
     svg: document.querySelector('svg'),
@@ -24,15 +22,4 @@ function compileSettings() {
     }
 }
 
-function start() {
-    console.log(compiledSettings);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    compileSettings();
-    start();
-});
-
-}());
-
-//# sourceMappingURL=svganimation.js.map
+export { compileSettings, compiledSettings };

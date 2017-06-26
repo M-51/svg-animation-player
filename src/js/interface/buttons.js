@@ -1,5 +1,7 @@
+import { compiledSettings } from '../settings';
+
 function start() {
-    console.log('test');
+    console.log(compiledSettings);
 }
 
 export default start;
