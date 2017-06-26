@@ -1,6 +1,8 @@
+import buttons from './interface/buttons';
+import { compileSettings } from './settings';
 
-function dupa() {
-    return 'dupa';
-}
+document.addEventListener('DOMContentLoaded', () => {
+    compileSettings();
+    buttons();
+});
 
-dupa();

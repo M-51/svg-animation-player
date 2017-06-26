@@ -1,27 +1,17 @@
 {
     "extends": "airbnb",
+
     "env": {
         "browser": true
     },
 
     "globals": {
-        "Obj": true,
-        "Slide": true,
-        "step": true,
-        "addSlides": true,
-        "next": true
+        "settings": true
     },
 
-    "rules": {
+    "rules":{
         "indent": [
             "error", 4
-        ],
-        "max-len": [
-            2, 250, 4
-        ],
-        "linebreak-style": [
-            "error", 
-            "windows"
         ]
     }
 }
