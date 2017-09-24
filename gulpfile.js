@@ -1,35 +1,28 @@
 const gulp = require('gulp');
-const rollup = require('gulp-better-rollup');
-const sourcemaps = require('gulp-sourcemaps');
+const rollup = require('rollup');
+const uglify = require('gulp-uglify-es').default;
 const rename = require('gulp-rename');
-const babili = require('gulp-babili');
 const gzip = require('gulp-gzip');
 const brotli = require('gulp-brotli');
 
-
-function bundle() {
-    return gulp.src('./src/js/index.js')
-        .pipe(sourcemaps.init())
-        .pipe(rollup({
-            format: 'iife',
-        }))
-        .pipe(rename('svganimation.js'))
-        .pipe(sourcemaps.write(''))
-        .pipe(gulp.dest('./dist/js/'));
+async function bundle() {
+    const a = await rollup.rollup({
+        input: './src/js/index.js',
+    });
+    await a.write({
+        file: './dist/js/svganimation.js',
+        format: 'iife',
+        name: 'svganimation',
+        sourcemap: true,
+    });
 }
 
 function minify() {
     return gulp.src('./dist/js/svganimation.js')
-        .pipe(babili({
-            mangle: {
-                keepClassName: false,
-                keepFnName: false,
-            },
-        }))
+        .pipe(uglify())
         .pipe(rename('svganimation.min.js'))
         .pipe(gulp.dest('./dist/js/'));
 }
-
 function compressGzip() {
     return gulp.src('./dist/js/svganimation.min.js')
         .pipe(gzip({
@@ -45,6 +38,7 @@ function compressBrotli() {
         }))
         .pipe(gulp.dest('./dist/js/'));
 }
+
 
 gulp.task('build', () => {
     gulp.watch('src/js/**/*.js', bundle);
