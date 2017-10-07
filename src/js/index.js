@@ -1,12 +1,8 @@
 import icons from './interface/interface';
 import { compileSettings } from './settings';
 import player from './player';
-
-class addObject {
-    constructor(name) {
-        this.name = name;
-    }
-}
+import Obj from './engine/object';
+import { add } from './engine/controler';
 
 document.addEventListener('DOMContentLoaded', () => {
     compileSettings();
@@ -14,4 +10,4 @@ document.addEventListener('DOMContentLoaded', () => {
     player();
 });
 
-export { addObject };
+export { Obj, add };

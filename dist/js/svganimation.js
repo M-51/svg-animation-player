@@ -195,6 +195,50 @@ function start$1() {
     addButtonToDOM$1();
 }
 
+function frame$1(time, object) {
+    console.log(object);
+}
+
+const objectList = [];
+
+function add(...objects) {
+    objectList.push(...objects);
+}
+
+function dispatch(time) {
+    for (let i = 0; i < objectList.length; i += 1) {
+        frame$1(time, objectList[i]);
+    }
+}
+
+let animationID = 0;
+let startTime = 0;
+let time = 0;
+
+function animate() {
+    function startLoop() {
+        time = Date.now() - startTime;
+        dispatch(time / 1000);
+        animationID = window.requestAnimationFrame(startLoop);
+    }
+
+    animationID = window.requestAnimationFrame(startLoop);
+}
+
+function start$3() {
+    startTime = Date.now();
+    animate();
+}
+
+function resume() {
+    startTime = Date.now() - time;
+    animate();
+}
+
+function pause() {
+    window.cancelAnimationFrame(animationID);
+}
+
 let status = 'not started';
 
 function playStop() {
@@ -202,11 +246,14 @@ function playStop() {
         status = 'playing';
         switchRefreshOn();
         switchToPause();
+        start$3();
     } else if (status === 'playing') {
         status = 'paused';
+        pause();
         switchToPlay();
     } else if (status === 'paused') {
         status = 'playing';
+        resume();
         switchToPause();
     }
 }
@@ -222,9 +269,11 @@ function start$2() {
     button.addEventListener('click', refresh$1, false);
 }
 
-class addObject {
-    constructor(name) {
-        this.name = name;
+class Obj {
+    constructor(item) {
+        this.item = item;
+        this.t = null;
+        this.animation = {};
     }
 }
 
@@ -234,7 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
     start$2();
 });
 
-exports.addObject = addObject;
+exports.Obj = Obj;
+exports.add = add;
 
 return exports;
 
