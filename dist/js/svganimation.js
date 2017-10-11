@@ -195,14 +195,43 @@ function start$1() {
     addButtonToDOM$1();
 }
 
+function getAttributes(object) {
+    const list = new Map();
+    const { attributes } = object;
+    for (let i = 0; i < attributes.length; i += 1) {
+        if (attributes[i].specified) {
+            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+        }
+    }
+    return list;
+}
+
+function resetAttributes(object, attributes) {
+    // remove all attributes
+    while (object.attributes.length > 0) {
+        object.removeAttribute(object.attributes[0].name);
+    }
+    // set new attributes
+    attributes.forEach((value, key) => {
+        object.setAttribute(key, value);
+    });
+}
+
 function frame$1(time, object) {
-    console.log(object);
+    console.log(getAttributes(object.item));
 }
 
 const objectList = [];
 
 function add(...objects) {
     objectList.push(...objects);
+}
+
+function init() {
+    objectList.forEach((object) => {
+        object.setVariables();
+        object.initMatrix();
+    });
 }
 
 function dispatch(time) {
@@ -219,7 +248,7 @@ function animate() {
     function startLoop() {
         time = Date.now() - startTime;
         dispatch(time / 1000);
-        animationID = window.requestAnimationFrame(startLoop);
+        // animationID = window.requestAnimationFrame(startLoop);
     }
 
     animationID = window.requestAnimationFrame(startLoop);
@@ -269,11 +298,32 @@ function start$2() {
     button.addEventListener('click', refresh$1, false);
 }
 
+function initMatrix(object) {
+    let matrix = null;
+    const svgTransform = object.transform.baseVal;
+    if (svgTransform.length) {
+        svgTransform.consolidate();
+        ({ matrix } = svgTransform.getItem(0));
+    } else {
+        matrix = compiledSettings.svg.createSVGMatrix();
+    }
+    svgTransform.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
+}
+
 class Obj {
     constructor(item) {
         this.item = item;
         this.t = null;
         this.animation = {};
+    }
+    setVariables() {
+        this.variables = getAttributes(this.item);
+    }
+    resetAttributes() {
+        resetAttributes(this.item, this.variables);
+    }
+    initMatrix() {
+        initMatrix(this.item);
     }
 }
 
@@ -281,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     compileSettings();
     start$1();
     start$2();
+    init();
 });
 
 exports.Obj = Obj;

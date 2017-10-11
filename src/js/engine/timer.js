@@ -8,7 +8,7 @@ function animate() {
     function startLoop() {
         time = Date.now() - startTime;
         dispatch(time / 1000);
-        animationID = window.requestAnimationFrame(startLoop);
+        // animationID = window.requestAnimationFrame(startLoop);
     }
 
     animationID = window.requestAnimationFrame(startLoop);
