@@ -1,4 +1,4 @@
-import { dispatch } from './controler';
+import { dispatch, reset } from './controler';
 
 let animationID = 0;
 let startTime = 0;
@@ -8,7 +8,7 @@ function animate() {
     function startLoop() {
         time = Date.now() - startTime;
         dispatch(time / 1000);
-        // animationID = window.requestAnimationFrame(startLoop);
+        animationID = window.requestAnimationFrame(startLoop);
     }
 
     animationID = window.requestAnimationFrame(startLoop);
@@ -28,4 +28,11 @@ function pause() {
     window.cancelAnimationFrame(animationID);
 }
 
-export { start, pause, resume };
+function refresh() {
+    window.cancelAnimationFrame(animationID);
+    startTime = 0;
+    time = 0;
+    reset();
+}
+
+export { start, pause, resume, refresh };

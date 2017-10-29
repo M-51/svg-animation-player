@@ -10,6 +10,16 @@ function init() {
     objectList.forEach((object) => {
         object.setVariables();
         object.initMatrix();
+        object.decomposeMatrix();
+    });
+}
+
+function reset() {
+    objectList.forEach((object) => {
+        object.resetAttributes();
+        object.setVariables();
+        object.initMatrix();
+        object.decomposeMatrix();
     });
 }
 
@@ -19,4 +29,4 @@ function dispatch(time) {
     }
 }
 
-export { add, dispatch, init };
+export { add, dispatch, init, reset };

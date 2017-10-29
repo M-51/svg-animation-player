@@ -6,8 +6,8 @@ const test = new svganimation.Obj(document.getElementById('test'));
 test.animation = {
     transform: {
         translate: {
-            x: this.t * 2,
-            y: this.t * this.t,
+            x: t => 100 * Math.cos(2 * t),
+            y: t => 200 * Math.sin(2 * t),
         },
     },
 };

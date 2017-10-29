@@ -1,5 +1,5 @@
 import { getAttributes, resetAttributes } from './helpers/attributes';
-import { initMatrix } from './helpers/matrix';
+import { initMatrix, decomposeMatrix } from './helpers/matrix';
 
 class Obj {
     constructor(item) {
@@ -10,11 +10,19 @@ class Obj {
     setVariables() {
         this.variables = getAttributes(this.item);
     }
+    initMatrix() {
+        initMatrix(this.item);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
     resetAttributes() {
         resetAttributes(this.item, this.variables);
     }
-    initMatrix() {
-        initMatrix(this.item);
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
     }
 }
 

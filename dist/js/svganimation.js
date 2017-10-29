@@ -195,6 +195,120 @@ function start$1() {
     addButtonToDOM$1();
 }
 
+function translate(matrix, x, y) {
+    const modifiedMatrix = matrix;
+
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
+function frame$1(time, object) {
+    console.log(time);
+    const x = object.animation.transform.translate.x(time);
+    const y = object.animation.transform.translate.y(time);
+    const matrix = translate(object.matrix, x, y);
+    object.setMatrix(matrix);
+}
+
+const objectList = [];
+
+function add(...objects) {
+    objectList.push(...objects);
+}
+
+function init() {
+    objectList.forEach((object) => {
+        object.setVariables();
+        object.initMatrix();
+        object.decomposeMatrix();
+    });
+}
+
+function reset$1() {
+    objectList.forEach((object) => {
+        object.resetAttributes();
+        object.setVariables();
+        object.initMatrix();
+        object.decomposeMatrix();
+    });
+}
+
+function dispatch(time) {
+    for (let i = 0; i < objectList.length; i += 1) {
+        frame$1(time, objectList[i]);
+    }
+}
+
+let animationID = 0;
+let startTime = 0;
+let time = 0;
+
+function animate() {
+    function startLoop() {
+        time = Date.now() - startTime;
+        dispatch(time / 1000);
+        animationID = window.requestAnimationFrame(startLoop);
+    }
+
+    animationID = window.requestAnimationFrame(startLoop);
+}
+
+function start$3() {
+    startTime = Date.now();
+    animate();
+}
+
+function resume() {
+    startTime = Date.now() - time;
+    animate();
+}
+
+function pause() {
+    window.cancelAnimationFrame(animationID);
+}
+
+function refresh$1() {
+    window.cancelAnimationFrame(animationID);
+    startTime = 0;
+    time = 0;
+    reset$1();
+}
+
+let status = 'not started';
+
+function playStop() {
+    if (status === 'not started') {
+        status = 'playing';
+        switchRefreshOn();
+        switchToPause();
+        start$3();
+    } else if (status === 'playing') {
+        status = 'paused';
+        pause();
+        switchToPlay();
+    } else if (status === 'paused') {
+        status = 'playing';
+        resume();
+        switchToPause();
+    }
+}
+
+function reset() {
+    if (status === 'playing' || status === 'paused' || status === 'ended') {
+        status = 'not started';
+        switchRefreshOff();
+        refresh$1();
+        switchToPlay();
+    }
+}
+function start$2() {
+    button$1.addEventListener('click', playStop, false);
+    switchRefreshOff();
+    button.addEventListener('click', reset, false);
+}
+
 function getAttributes(object) {
     const list = new Map();
     const { attributes } = object;
@@ -217,87 +331,6 @@ function resetAttributes(object, attributes) {
     });
 }
 
-function frame$1(time, object) {
-    console.log(getAttributes(object.item));
-}
-
-const objectList = [];
-
-function add(...objects) {
-    objectList.push(...objects);
-}
-
-function init() {
-    objectList.forEach((object) => {
-        object.setVariables();
-        object.initMatrix();
-    });
-}
-
-function dispatch(time) {
-    for (let i = 0; i < objectList.length; i += 1) {
-        frame$1(time, objectList[i]);
-    }
-}
-
-let animationID = 0;
-let startTime = 0;
-let time = 0;
-
-function animate() {
-    function startLoop() {
-        time = Date.now() - startTime;
-        dispatch(time / 1000);
-        // animationID = window.requestAnimationFrame(startLoop);
-    }
-
-    animationID = window.requestAnimationFrame(startLoop);
-}
-
-function start$3() {
-    startTime = Date.now();
-    animate();
-}
-
-function resume() {
-    startTime = Date.now() - time;
-    animate();
-}
-
-function pause() {
-    window.cancelAnimationFrame(animationID);
-}
-
-let status = 'not started';
-
-function playStop() {
-    if (status === 'not started') {
-        status = 'playing';
-        switchRefreshOn();
-        switchToPause();
-        start$3();
-    } else if (status === 'playing') {
-        status = 'paused';
-        pause();
-        switchToPlay();
-    } else if (status === 'paused') {
-        status = 'playing';
-        resume();
-        switchToPause();
-    }
-}
-
-function refresh$1() {
-    if (status === 'playing' || status === 'paused' || status === 'ended') {
-        switchRefreshOff();
-    }
-}
-function start$2() {
-    button$1.addEventListener('click', playStop, false);
-    switchRefreshOff();
-    button.addEventListener('click', refresh$1, false);
-}
-
 function initMatrix(object) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
@@ -310,6 +343,18 @@ function initMatrix(object) {
     svgTransform.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
 }
 
+function decomposeMatrix(m) {
+    const transform = {};
+    transform.translate = {
+        x: m.e,
+        y: m.f,
+    };
+    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
+    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
+
+    return transform;
+}
+
 class Obj {
     constructor(item) {
         this.item = item;
@@ -319,11 +364,19 @@ class Obj {
     setVariables() {
         this.variables = getAttributes(this.item);
     }
+    initMatrix() {
+        initMatrix(this.item);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
     resetAttributes() {
         resetAttributes(this.item, this.variables);
     }
-    initMatrix() {
-        initMatrix(this.item);
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
     }
 }
 
