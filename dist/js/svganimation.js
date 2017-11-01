@@ -195,6 +195,15 @@ function start$1() {
     addButtonToDOM$1();
 }
 
+function translate(matrix, x, y) {
+    const modifiedMatrix = matrix;
+
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
 function chooseTransformMethod$1(object) {
     const { transform } = object.animation;
     const keys = Object.keys(transform);
@@ -203,9 +212,16 @@ function chooseTransformMethod$1(object) {
         return keys.indexOf(property);
     }
 
+    let animationFunc;
+
     if (check('translate') !== -1 && check('rotate') === -1 && check('scale') === -1) {
         // only translate
-        console.log('translate');
+        animationFunc = (time) => {
+            const x = transform.translate.x(time);
+            const y = transform.translate.y(time);
+            const matrix = translate(object.matrix, x, y);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') === -1) {
         // only rotate
         console.log('rotate');
@@ -225,14 +241,18 @@ function chooseTransformMethod$1(object) {
         // translate, rotate and scale
         console.log('translate, rotate and scale');
     }
+
+    return animationFunc;
 }
+
+const animationLoop = [];
 
 function prepare(objectsList) {
     objectsList.forEach((object) => {
         const keys = Object.keys(object.animation);
         keys.forEach((key) => {
             if (key === 'transform') {
-                chooseTransformMethod$1(object);
+                animationLoop.push(chooseTransformMethod$1(object));
             }
         });
     });
@@ -267,19 +287,10 @@ function reset$1() {
 }
 
 function frame(time) {
-    console.log(time);
+    for (let i = 0; i < animationLoop.length; i += 1) {
+        animationLoop[i](time);
+    }
 }
-
-
-
-/*
-function frame(time, object) {
-    const x = object.animation.transform.translate.x(time);
-    const y = object.animation.transform.translate.y(time);
-    const matrix = translate(object.matrix, x, y);
-    object.setMatrix(matrix);
-}
-*/
 
 let animationID = 0;
 let startTime = 0;

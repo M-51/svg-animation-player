@@ -1,3 +1,4 @@
+import { translate } from './matrix-transformations';
 
 function chooseTransformMethod(object) {
     const { transform } = object.animation;
@@ -7,9 +8,16 @@ function chooseTransformMethod(object) {
         return keys.indexOf(property);
     }
 
+    let animationFunc;
+
     if (check('translate') !== -1 && check('rotate') === -1 && check('scale') === -1) {
         // only translate
-        console.log('translate');
+        animationFunc = (time) => {
+            const x = transform.translate.x(time);
+            const y = transform.translate.y(time);
+            const matrix = translate(object.matrix, x, y);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') === -1) {
         // only rotate
         console.log('rotate');
@@ -29,6 +37,8 @@ function chooseTransformMethod(object) {
         // translate, rotate and scale
         console.log('translate, rotate and scale');
     }
+
+    return animationFunc;
 }
 
 export default chooseTransformMethod;
