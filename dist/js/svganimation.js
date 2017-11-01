@@ -195,27 +195,58 @@ function start$1() {
     addButtonToDOM$1();
 }
 
-function translate(matrix, x, y) {
-    const modifiedMatrix = matrix;
+function chooseTransformMethod$1(object) {
+    const { transform } = object.animation;
+    const keys = Object.keys(transform);
 
-    modifiedMatrix.e = x;
-    modifiedMatrix.f = y;
+    function check(property) {
+        return keys.indexOf(property);
+    }
 
-    return modifiedMatrix;
+    if (check('translate') !== -1 && check('rotate') === -1 && check('scale') === -1) {
+        // only translate
+        console.log('translate');
+    } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') === -1) {
+        // only rotate
+        console.log('rotate');
+    } else if (check('translate') === -1 && check('rotate') === -1 && check('scale') !== -1) {
+        // only scale
+        console.log('scale');
+    } else if (check('translate') !== -1 && check('rotate') !== -1 && check('scale') === -1) {
+        // translate and rotate
+        console.log('translate and rotate');
+    } else if (check('translate') !== -1 && check('rotate') === -1 && check('scale') !== -1) {
+        // translate and scale
+        console.log('translate and scale');
+    } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') !== -1) {
+        // rotate and scale
+        console.log('rotate and scale');
+    } else if (check('translate') !== -1 && check('rotate') !== -1 && check('scale') !== -1) {
+        // translate, rotate and scale
+        console.log('translate, rotate and scale');
+    }
 }
 
-function frame$1(time, object) {
-    console.log(time);
-    const x = object.animation.transform.translate.x(time);
-    const y = object.animation.transform.translate.y(time);
-    const matrix = translate(object.matrix, x, y);
-    object.setMatrix(matrix);
+function prepare(objectsList) {
+    objectsList.forEach((object) => {
+        const keys = Object.keys(object.animation);
+        keys.forEach((key) => {
+            if (key === 'transform') {
+                chooseTransformMethod$1(object);
+            }
+        });
+    });
 }
 
-const objectList = [];
+const objectList = new Set();
 
 function add(...objects) {
-    objectList.push(...objects);
+    objects.forEach((object) => {
+        if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+            objectList.add(object);
+        }
+    });
+    prepare(objectList);
 }
 
 function init() {
@@ -235,11 +266,20 @@ function reset$1() {
     });
 }
 
-function dispatch(time) {
-    for (let i = 0; i < objectList.length; i += 1) {
-        frame$1(time, objectList[i]);
-    }
+function frame(time) {
+    console.log(time);
 }
+
+
+
+/*
+function frame(time, object) {
+    const x = object.animation.transform.translate.x(time);
+    const y = object.animation.transform.translate.y(time);
+    const matrix = translate(object.matrix, x, y);
+    object.setMatrix(matrix);
+}
+*/
 
 let animationID = 0;
 let startTime = 0;
@@ -248,10 +288,9 @@ let time = 0;
 function animate() {
     function startLoop() {
         time = Date.now() - startTime;
-        dispatch(time / 1000);
+        frame(time / 1000);
         animationID = window.requestAnimationFrame(startLoop);
     }
-
     animationID = window.requestAnimationFrame(startLoop);
 }
 
@@ -359,7 +398,6 @@ class Obj {
     constructor(item) {
         this.item = item;
         this.t = null;
-        this.animation = {};
     }
     setVariables() {
         this.variables = getAttributes(this.item);

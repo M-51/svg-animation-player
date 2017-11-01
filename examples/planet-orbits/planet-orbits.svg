@@ -4,6 +4,8 @@
 
 <circle id="test" cx="0" cy="0" r="10" fill="#F66"/>
 
+<circle id="test2" cx="0" cy="0" r="10" fill="#444"/>
+
 <script type="text/ecmascript" xlink:href="../../dist/js/svganimation.js" />
 <script type="text/ecmascript" xlink:href="planet-orbits.js" />
 </svg>

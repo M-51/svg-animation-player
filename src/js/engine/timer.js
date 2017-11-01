@@ -1,4 +1,5 @@
-import { dispatch, reset } from './controler';
+import { reset } from './controler';
+import frame from './draw';
 
 let animationID = 0;
 let startTime = 0;
@@ -7,10 +8,9 @@ let time = 0;
 function animate() {
     function startLoop() {
         time = Date.now() - startTime;
-        dispatch(time / 1000);
+        frame(time / 1000);
         animationID = window.requestAnimationFrame(startLoop);
     }
-
     animationID = window.requestAnimationFrame(startLoop);
 }
 

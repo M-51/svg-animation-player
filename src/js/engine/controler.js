@@ -1,9 +1,14 @@
-import draw from './draw';
+import { prepare } from './dispatcher';
 
-const objectList = [];
+const objectList = new Set();
 
 function add(...objects) {
-    objectList.push(...objects);
+    objects.forEach((object) => {
+        if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+            objectList.add(object);
+        }
+    });
+    prepare(objectList);
 }
 
 function init() {
@@ -23,10 +28,4 @@ function reset() {
     });
 }
 
-function dispatch(time) {
-    for (let i = 0; i < objectList.length; i += 1) {
-        draw(time, objectList[i]);
-    }
-}
-
-export { add, dispatch, init, reset };
+export { add, init, reset };
