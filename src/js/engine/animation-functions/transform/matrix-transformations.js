@@ -1,5 +1,4 @@
 
-
 function translate(matrix, x, y) {
     const modifiedMatrix = matrix;
 
@@ -9,11 +8,39 @@ function translate(matrix, x, y) {
     return modifiedMatrix;
 }
 
-function scaleAndRotateAndTranslate(matrix, s, angle, x, y) {
+function rotate(matrix, angle, s) {
     const modifiedMatrix = matrix;
-    const r = (-angle * Math.PI) / 180;
-    const c = Math.sin(r) * s;
-    const a = Math.cos(r) * s;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function scale(matrix, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function translateRotate(matrix, x, y, angle, s) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
 
     modifiedMatrix.a = a;
     modifiedMatrix.b = -c;
@@ -25,4 +52,57 @@ function scaleAndRotateAndTranslate(matrix, s, angle, x, y) {
     return modifiedMatrix;
 }
 
-export { translate, scaleAndRotateAndTranslate };
+function translateScale(matrix, x, y, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
+function scaleRotate(matrix, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function translateScaleRotate(matrix, x, y, s, angle) {
+    const modifiedMatrix = matrix;
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
+export {
+    translate,
+    rotate,
+    scale,
+    translateRotate,
+    translateScale,
+    scaleRotate,
+    translateScaleRotate,
+};

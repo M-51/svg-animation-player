@@ -204,8 +204,100 @@ function translate(matrix, x, y) {
     return modifiedMatrix;
 }
 
+function rotate(matrix, angle, s) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function scale(matrix, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function translateRotate(matrix, x, y, angle, s) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
+function translateScale(matrix, x, y, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
+function scaleRotate(matrix, s, angle) {
+    const modifiedMatrix = matrix;
+
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+
+    return modifiedMatrix;
+}
+
+function translateScaleRotate(matrix, x, y, s, angle) {
+    const modifiedMatrix = matrix;
+    const c = Math.sin(angle) * s;
+    const a = Math.cos(angle) * s;
+
+    modifiedMatrix.a = a;
+    modifiedMatrix.b = -c;
+    modifiedMatrix.c = c;
+    modifiedMatrix.d = a;
+    modifiedMatrix.e = x;
+    modifiedMatrix.f = y;
+
+    return modifiedMatrix;
+}
+
 function chooseTransformMethod$1(object) {
+    // shortcuts
     const { transform } = object.animation;
+    const v = object.transform;
+    const t = v.translate;
     const keys = Object.keys(transform);
 
     function check(property) {
@@ -217,29 +309,59 @@ function chooseTransformMethod$1(object) {
     if (check('translate') !== -1 && check('rotate') === -1 && check('scale') === -1) {
         // only translate
         animationFunc = (time) => {
-            const x = transform.translate.x(time);
-            const y = transform.translate.y(time);
-            const matrix = translate(object.matrix, x, y);
+            t.x = transform.translate.x(time);
+            t.y = transform.translate.y(time);
+            const matrix = translate(object.matrix, t.x, t.y);
             object.setMatrix(matrix);
         };
     } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') === -1) {
         // only rotate
-        console.log('rotate');
+        animationFunc = (time) => {
+            v.rotate = transform.rotate(time);
+            const matrix = rotate(object.matrix, v.rotate, v.scale);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') === -1 && check('rotate') === -1 && check('scale') !== -1) {
         // only scale
-        console.log('scale');
+        animationFunc = (time) => {
+            v.scale = transform.scale(time);
+            const matrix = scale(object.matrix, v.scale, v.rotate);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') !== -1 && check('rotate') !== -1 && check('scale') === -1) {
         // translate and rotate
-        console.log('translate and rotate');
+        animationFunc = (time) => {
+            t.x = transform.translate.x(time);
+            t.y = transform.translate.y(time);
+            const angle = transform.rotate(time);
+            const matrix = translateRotate(object.matrix, t.x, t.y, angle, v.scale);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') !== -1 && check('rotate') === -1 && check('scale') !== -1) {
         // translate and scale
-        console.log('translate and scale');
+        animationFunc = (time) => {
+            t.x = transform.translate.x(time);
+            t.y = transform.translate.y(time);
+            v.scale = transform.scale(time);
+            const matrix = translateScale(object.matrix, t.x, t.y, v.scale, v.rotate);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') === -1 && check('rotate') !== -1 && check('scale') !== -1) {
-        // rotate and scale
-        console.log('rotate and scale');
+        animationFunc = (time) => {
+            v.rotate = transform.rotate(time);
+            v.scale = transform.scale(time);
+            const matrix = scaleRotate(object.matrix, v.scale, v.rotate);
+            object.setMatrix(matrix);
+        };
     } else if (check('translate') !== -1 && check('rotate') !== -1 && check('scale') !== -1) {
-        // translate, rotate and scale
-        console.log('translate, rotate and scale');
+        animationFunc = (time) => {
+            t.x = transform.translate.x(time);
+            t.y = transform.translate.y(time);
+            v.rotate = transform.rotate(time);
+            v.scale = transform.scale(time);
+            const matrix = translateScaleRotate(object.matrix, t.x, t.y, v.scale, v.rotate);
+            object.setMatrix(matrix);
+        };
     }
 
     return animationFunc;
@@ -266,7 +388,6 @@ function add(...objects) {
             objectList.add(object);
         }
     });
-    prepare(objectList);
 }
 
 function init() {
@@ -274,6 +395,7 @@ function init() {
         object.setVariables();
         object.initMatrix();
         object.decomposeMatrix();
+        prepare(objectList);
     });
 }
 

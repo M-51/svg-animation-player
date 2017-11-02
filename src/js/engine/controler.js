@@ -8,7 +8,6 @@ function add(...objects) {
             objectList.add(object);
         }
     });
-    prepare(objectList);
 }
 
 function init() {
@@ -16,6 +15,7 @@ function init() {
         object.setVariables();
         object.initMatrix();
         object.decomposeMatrix();
+        prepare(objectList);
     });
 }
 
