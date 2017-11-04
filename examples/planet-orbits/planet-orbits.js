@@ -15,4 +15,4 @@ test.animation = {
 };
 
 
-svganimation.add(test);
+svganimation.start(test);

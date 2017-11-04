@@ -1,12 +1,12 @@
 import { translate, rotate, scale, translateRotate, translateScale, scaleRotate, translateScaleRotate } from './matrix-transformations';
 
-function chooseTransformMethod(object) {
+function chooseTransformMethod(object, transform) {
     // shortcuts
-    const { transform } = object.animation;
-    const v = object.transform;
-    const t = v.translate;
+    const v = object.transform; // current position/scale/rotation object
+    const t = v.translate; // current translation
     const keys = Object.keys(transform);
 
+    // check of property exist
     function check(property) {
         return keys.indexOf(property);
     }
@@ -70,7 +70,6 @@ function chooseTransformMethod(object) {
             object.setMatrix(matrix);
         };
     }
-
     return animationFunc;
 }
 

@@ -293,13 +293,13 @@ function translateScaleRotate(matrix, x, y, s, angle) {
     return modifiedMatrix;
 }
 
-function chooseTransformMethod$1(object) {
+function chooseTransformMethod$1(object, transform) {
     // shortcuts
-    const { transform } = object.animation;
-    const v = object.transform;
-    const t = v.translate;
+    const v = object.transform; // current position/scale/rotation object
+    const t = v.translate; // current translation
     const keys = Object.keys(transform);
 
+    // check of property exist
     function check(property) {
         return keys.indexOf(property);
     }
@@ -363,19 +363,30 @@ function chooseTransformMethod$1(object) {
             object.setMatrix(matrix);
         };
     }
-
     return animationFunc;
 }
 
 const animationLoop = [];
 
+function sort(key, object) {
+    if (key === 'transform') {
+        if (Array.isArray(object.animation.transform)) {
+            object.animation.transform.forEach((item) => {
+                animationLoop.push(chooseTransformMethod$1(object, item));
+            });
+        } else {
+            animationLoop.push(chooseTransformMethod$1(object, object.animation.transform));
+        }
+    } else {
+        console.log(key);
+    }
+}
+
 function prepare(objectsList) {
     objectsList.forEach((object) => {
         const keys = Object.keys(object.animation);
         keys.forEach((key) => {
-            if (key === 'transform') {
-                animationLoop.push(chooseTransformMethod$1(object));
-            }
+            sort(key, object);
         });
     });
 }
@@ -551,15 +562,16 @@ class Obj {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function start(...objects) {
+    add(...objects);
     compileSettings();
     start$1();
     start$2();
     init();
-});
+}
 
 exports.Obj = Obj;
-exports.add = add;
+exports.start = start;
 
 return exports;
 
