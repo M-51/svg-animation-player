@@ -191,8 +191,10 @@ function addButtonToDOM$1() {
 }
 
 function start$1() {
-    addButtonToDOM();
-    addButtonToDOM$1();
+    if (compiledSettings.showInterface) {
+        addButtonToDOM();
+        addButtonToDOM$1();
+    }
 }
 
 function translate(matrix, x, y) {
@@ -541,7 +543,6 @@ function decomposeMatrix(m) {
 class Obj {
     constructor(item) {
         this.item = item;
-        this.t = null;
     }
     setVariables() {
         this.variables = getAttributes(this.item);

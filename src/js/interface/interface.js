@@ -1,9 +1,12 @@
 import { refresh } from './buttons/refresh';
 import { playPause } from './buttons/playpause';
+import { compiledSettings } from '../settings';
 
 function start() {
-    refresh();
-    playPause();
+    if (compiledSettings.showInterface) {
+        refresh();
+        playPause();
+    }
 }
 
 export default start;

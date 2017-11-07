@@ -4,7 +4,6 @@ import { initMatrix, decomposeMatrix } from './helpers/matrix';
 class Obj {
     constructor(item) {
         this.item = item;
-        this.t = null;
     }
     setVariables() {
         this.variables = getAttributes(this.item);

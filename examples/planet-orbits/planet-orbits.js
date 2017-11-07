@@ -1,7 +1,4 @@
-
-
 const test = new svganimation.Obj(document.getElementById('test'));
-
 
 test.animation = {
     transform: {
@@ -13,6 +10,5 @@ test.animation = {
         rotate: t => t,
     },
 };
-
 
 svganimation.start(test);
