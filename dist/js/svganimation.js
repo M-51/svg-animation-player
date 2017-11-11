@@ -370,17 +370,19 @@ function chooseTransformMethod$1(object, transform) {
 
 const animationLoop = [];
 
-function sort(key, object) {
+function sort(key, animation, object) {
     if (key === 'transform') {
-        if (Array.isArray(object.animation.transform)) {
-            object.animation.transform.forEach((item) => {
-                animationLoop.push(chooseTransformMethod$1(object, item));
-            });
-        } else {
-            animationLoop.push(chooseTransformMethod$1(object, object.animation.transform));
-        }
+        animationLoop.push(chooseTransformMethod$1(object, animation));
+    }
+}
+
+function separate(key, object) {
+    if (Array.isArray(object.animation[key])) {
+        object.animation[key].forEach((item) => {
+            sort(key, item, object);
+        });
     } else {
-        console.log(key);
+        sort(key, object.animation[key], object);
     }
 }
 
@@ -388,7 +390,7 @@ function prepare(objectsList) {
     objectsList.forEach((object) => {
         const keys = Object.keys(object.animation);
         keys.forEach((key) => {
-            sort(key, object);
+            separate(key, object);
         });
     });
 }
