@@ -368,12 +368,33 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
+function applyRange$1(animationFunction, range) {
+    const rangeFunction = (t) => {
+        if (t >= range[0] && t <= range[1]) {
+            animationFunction(t);
+        } else if (t > range[1]) {
+            animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+        }
+    };
+    return rangeFunction;
+}
+
 const animationLoop = [];
 
-function sort(key, animation, object) {
-    if (key === 'transform') {
-        animationLoop.push(chooseTransformMethod$1(object, animation));
+function applyRange(animationFunction, animation) {
+    if (animation.range) {
+        animationLoop.push(applyRange$1(animationFunction, animation.range));
+    } else {
+        animationLoop.push(animationFunction);
     }
+}
+
+function sort(key, animation, object) {
+    let animationFunction;
+    if (key === 'transform') {
+        animationFunction = chooseTransformMethod$1(object, animation);
+    }
+    applyRange(animationFunction, animation);
 }
 
 function separate(key, object) {
@@ -427,6 +448,7 @@ function frame(time) {
     for (let i = 0; i < animationLoop.length; i += 1) {
         animationLoop[i](time);
     }
+    console.log(animationLoop);
 }
 
 let animationID = 0;

@@ -1,11 +1,22 @@
 import transformControler from './animation-functions/transform/transform-controler';
+import range from './range';
 
 const animationLoop = [];
 
-function sort(key, animation, object) {
-    if (key === 'transform') {
-        animationLoop.push(transformControler(object, animation));
+function applyRange(animationFunction, animation) {
+    if (animation.range) {
+        animationLoop.push(range(animationFunction, animation.range));
+    } else {
+        animationLoop.push(animationFunction);
     }
+}
+
+function sort(key, animation, object) {
+    let animationFunction;
+    if (key === 'transform') {
+        animationFunction = transformControler(object, animation);
+    }
+    applyRange(animationFunction, animation);
 }
 
 function separate(key, object) {

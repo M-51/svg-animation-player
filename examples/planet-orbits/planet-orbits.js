@@ -3,7 +3,7 @@ const test = new svganimation.Obj(document.getElementById('test'));
 test.animation = {
     transform: [
         {
-            range: [2, 6],
+            range: [0, 4],
             translate: {
                 x: t => 100 * Math.cos(2 * t),
                 y: t => 100 * Math.sin(2 * t),
@@ -12,13 +12,12 @@ test.animation = {
             rotate: t => t,
         },
         {
-            range: [7, 10],
+            range: [3, 5],
             translate: {
-                x: t => 100 * t,
-                y: t => 100 * t,
+                x: t => 10 * t,
+                y: t => 10 * t,
             },
         }],
-    'dupa-kupa': 7,
 };
 
 svganimation.start(test);
