@@ -6,6 +6,11 @@ function undef(item) {
     return (typeof item === 'undefined');
 }
 
+// check if expresion is a number
+function isNumeric(number) {
+    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
+}
+
 // create element NS
 // accepts element name as paramater
 function createElNS(name) {
@@ -368,7 +373,7 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-function applyRange$1(animationFunction, range) {
+function interval(animationFunction, range) {
     const rangeFunction = (t) => {
         if (t >= range[0] && t <= range[1]) {
             animationFunction(t);
@@ -376,6 +381,39 @@ function applyRange$1(animationFunction, range) {
             animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
         }
     };
+    return rangeFunction;
+}
+
+function infiniteEndpoint(animationFunction, range) {
+    const rangeFunction = (t) => {
+        if (t >= range[0]) {
+            animationFunction(t);
+        }
+    };
+    return rangeFunction;
+}
+
+function oneTime(animationFunction, range) {
+    const rangeFunction = (t) => {
+        if (t >= range) {
+            animationFunction(t);
+            animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+        }
+    };
+    return rangeFunction;
+}
+
+function applyRange$1(animationFunction, range) {
+    let rangeFunction;
+    if (Array.isArray(range)) {
+        if (range.length === 1) {
+            rangeFunction = infiniteEndpoint(animationFunction, range);
+        } else if (range.length === 2) {
+            rangeFunction = interval(animationFunction, range);
+        }
+    } else if (isNumeric(range)) {
+        rangeFunction = oneTime(animationFunction, range);
+    }
     return rangeFunction;
 }
 
@@ -448,7 +486,6 @@ function frame(time) {
     for (let i = 0; i < animationLoop.length; i += 1) {
         animationLoop[i](time);
     }
-    console.log(animationLoop);
 }
 
 let animationID = 0;

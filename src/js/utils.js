@@ -4,6 +4,11 @@ function undef(item) {
     return (typeof item === 'undefined');
 }
 
+// check if expresion is a number
+function isNumeric(number) {
+    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
+}
+
 // create element NS
 // accepts element name as paramater
 function createElNS(name) {
@@ -18,4 +23,4 @@ function setAttrs(element, ...attributtes) {
     });
 }
 
-export { undef, createElNS, setAttrs };
+export { undef, createElNS, setAttrs, isNumeric };
