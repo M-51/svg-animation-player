@@ -1,12 +1,12 @@
 {
-    "extends": "airbnb",
+    "extends": "airbnb-base",
 
     "env": {
         "browser": true
     },
 
     "globals": {
-        "settings": true
+        "svganimation": true
     },
 
     "rules":{
