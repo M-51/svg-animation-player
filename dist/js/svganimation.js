@@ -70,7 +70,6 @@ setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'transl
 
 // button
 const button = createElNS('rect');
-button.id = 'refresh';
 setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
 
 // group button and icon
@@ -145,7 +144,6 @@ group.appendChild(playPause2);
 
 // button
 const button$1 = createElNS('rect');
-button$1.id = 'playPause';
 setAttrs(button$1, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
 
 // group button and icon
@@ -373,46 +371,77 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-function interval(animationFunction, range) {
-    const rangeFunction = (t) => {
-        if (t >= range[0] && t <= range[1]) {
-            animationFunction(t);
-        } else if (t > range[1]) {
-            animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
-        }
-    };
+function interval(animationFunction, range, local) {
+    let rangeFunction;
+    if (local) {
+        rangeFunction = (t) => {
+            if (t >= range[0] && t <= range[1]) {
+                animationFunction(t - range[0]);
+            } else if (t > range[1]) {
+                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            }
+        };
+    } else {
+        rangeFunction = (t) => {
+            if (t >= range[0] && t <= range[1]) {
+                animationFunction(t);
+            } else if (t > range[1]) {
+                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            }
+        };
+    }
     return rangeFunction;
 }
 
-function infiniteEndpoint(animationFunction, range) {
-    const rangeFunction = (t) => {
-        if (t >= range[0]) {
-            animationFunction(t);
-        }
-    };
+function infiniteEndpoint(animationFunction, range, local) {
+    let rangeFunction;
+    if (local) {
+        rangeFunction = (t) => {
+            if (t >= range[0]) {
+                animationFunction(t - range[0]);
+            }
+        };
+    } else {
+        rangeFunction = (t) => {
+            if (t >= range[0]) {
+                animationFunction(t);
+            }
+        };
+    }
     return rangeFunction;
 }
 
-function oneTime(animationFunction, range) {
-    const rangeFunction = (t) => {
-        if (t >= range) {
-            animationFunction(t);
-            animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
-        }
-    };
+function oneTime(animationFunction, range, local) {
+    let rangeFunction;
+    if (local) {
+        rangeFunction = (t) => {
+            if (t >= range) {
+                animationFunction(t - range);
+                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            }
+        };
+    } else {
+        rangeFunction = (t) => {
+            if (t >= range) {
+                animationFunction(t);
+                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            }
+        };
+    }
+
     return rangeFunction;
 }
 
-function applyRange$1(animationFunction, range) {
+function applyRange$1(animationFunction, range, local) {
     let rangeFunction;
     if (Array.isArray(range)) {
         if (range.length === 1) {
-            rangeFunction = infiniteEndpoint(animationFunction, range);
+            rangeFunction = infiniteEndpoint(animationFunction, range, local);
         } else if (range.length === 2) {
-            rangeFunction = interval(animationFunction, range);
+            rangeFunction = interval(animationFunction, range, local);
         }
     } else if (isNumeric(range)) {
-        rangeFunction = oneTime(animationFunction, range);
+        rangeFunction = oneTime(animationFunction, range, local);
     }
     return rangeFunction;
 }
@@ -421,7 +450,7 @@ const animationLoop = [];
 
 function applyRange(animationFunction, animation) {
     if (animation.range) {
-        animationLoop.push(applyRange$1(animationFunction, animation.range));
+        animationLoop.push(applyRange$1(animationFunction, animation.range, animation.local));
     } else {
         animationLoop.push(animationFunction);
     }

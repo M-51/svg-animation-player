@@ -5,7 +5,7 @@ const animationLoop = [];
 
 function applyRange(animationFunction, animation) {
     if (animation.range) {
-        animationLoop.push(range(animationFunction, animation.range));
+        animationLoop.push(range(animationFunction, animation.range, animation.local));
     } else {
         animationLoop.push(animationFunction);
     }

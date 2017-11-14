@@ -26,7 +26,6 @@ setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'transl
 
 // button
 const button = createElNS('rect');
-button.id = 'refresh';
 setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
 
 // group button and icon

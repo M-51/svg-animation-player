@@ -14,7 +14,6 @@ group.appendChild(playPause2);
 
 // button
 const button = createElNS('rect');
-button.id = 'playPause';
 setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
 
 // group button and icon
