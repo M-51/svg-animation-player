@@ -24,15 +24,14 @@ function compileSettings() {
     }
 }
 
-function start() {
+function start$1() {
     console.log(compiledSettings);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     compileSettings();
-    start();
+    start$1();
 });
 
 }());
-
 //# sourceMappingURL=svganimation.js.map
