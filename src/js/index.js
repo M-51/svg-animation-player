@@ -1,15 +1,12 @@
-import buttons from './interface/interface';
-import { compileSettings } from './settings';
-import player from './player';
+// import buttons from './interface/interface';
+import player from './main-object/player';
+// import { compileSettings } from './settings';
 import Obj from './engine/object';
-import { add, init } from './engine/controler';
+// import { add, init } from './engine/controler';
+import Create from './main-object/constructor';
+import draw from './main-object/draw';
 
-function start(...objects) {
-    add(...objects);
-    compileSettings();
-    buttons();
-    player();
-    init();
-}
+player();
+draw();
 
-export { Obj, start };
+export { Obj, Create };

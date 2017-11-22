@@ -14,4 +14,8 @@ test.animation = {
         },
 };
 
-svganimation.start(test);
+const dupa = new svganimation.Create();
+
+dupa.init(test);
+
+// svganimation.start(test);
