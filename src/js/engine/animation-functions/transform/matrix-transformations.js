@@ -7,7 +7,6 @@ function translate(matrix, x, y) {
 
     return modifiedMatrix;
 }
-
 function rotate(matrix, angle, s) {
     const modifiedMatrix = matrix;
 

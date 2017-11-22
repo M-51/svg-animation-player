@@ -31,7 +31,9 @@ function createPlayer() {
             window.cancelAnimationFrame(this.timer.animationID);
             this.timer.startTime = 0;
             this.timer.time = 0;
-            // reset(); REMEMBER TO RESET ALL ITEMS!!! this.objectList
+
+            // reset all animated object to starting attributtes
+            this.reset();
         }
     };
 }

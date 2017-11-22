@@ -1,15 +1,15 @@
-import { compiledSettings } from '../../settings';
 
-function initMatrix(object) {
+
+function initMatrix(object, settings) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
     if (svgTransform.length) {
         svgTransform.consolidate();
         ({ matrix } = svgTransform.getItem(0));
     } else {
-        matrix = compiledSettings.svg.createSVGMatrix();
+        matrix = settings.svg.createSVGMatrix();
     }
-    svgTransform.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
+    svgTransform.initialize(settings.svg.createSVGTransformFromMatrix(matrix));
 }
 
 function decomposeMatrix(m) {

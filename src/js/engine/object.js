@@ -8,8 +8,8 @@ class Obj {
     setVariables() {
         this.variables = getAttributes(this.item);
     }
-    initMatrix() {
-        initMatrix(this.item);
+    initMatrix(settings) {
+        initMatrix(this.item, settings);
         this.matrix = this.item.transform.baseVal.getItem(0).matrix;
         this.SVGTransform = this.item.transform.baseVal.getItem(0);
     }

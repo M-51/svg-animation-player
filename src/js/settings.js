@@ -8,16 +8,18 @@ const defaultSettings = {
     interfaceColor: '#000',
     interfacePosition: 'auto',
 };
-const compiledSettings = {};
 
-function compileSettings() {
+
+function compileSettings(settings) {
+    const compiledSettings = {};
     Object.keys(defaultSettings).forEach((rule) => {
-        if (!undef(svganimation.settings) && !undef(svganimation.settings[rule])) {
-            compiledSettings[rule] = svganimation.settings[rule];
+        if (!undef(settings) && !undef(settings[rule])) {
+            compiledSettings[rule] = settings[rule];
         } else {
             compiledSettings[rule] = defaultSettings[rule];
         }
     });
+    return compiledSettings;
 }
 
-export { compileSettings, compiledSettings };
+export default compileSettings;
