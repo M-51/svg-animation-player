@@ -372,28 +372,33 @@ function createPlayer$1() {
         function startLoop() {
             that.timer.time = Date.now() - that.timer.startTime;
             that.frame(that.timer.time / 1000);
-            that.timer.animationID = window.requestAnimationFrame(startLoop);
+            that.timer.animationId = window.requestAnimationFrame(startLoop);
         }
-        this.timer.animationID = window.requestAnimationFrame(startLoop);
+        this.timer.animationId = window.requestAnimationFrame(startLoop);
     };
 
     Create.prototype.pause = function pause() {
         if (this.status === 'playing') {
             this.status = 'paused';
-            window.cancelAnimationFrame(this.timer.animationID);
+            window.cancelAnimationFrame(this.timer.animationId);
         }
     };
 
     Create.prototype.refresh = function refresh() {
         if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
             this.status = 'not started';
-            window.cancelAnimationFrame(this.timer.animationID);
+            window.cancelAnimationFrame(this.timer.animationId);
             this.timer.startTime = 0;
             this.timer.time = 0;
 
             // reset all animated object to starting attributtes
             this.reset();
         }
+    };
+    Create.prototype.end = function end() {
+        this.status = 'ended';
+        window.cancelAnimationFrame(this.timer.animationId);
+        // switch play off and leave only refresh !!!! TO DO
     };
 }
 
