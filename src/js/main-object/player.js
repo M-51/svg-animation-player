@@ -38,7 +38,10 @@ function createPlayer() {
     };
     Create.prototype.end = function end() {
         this.status = 'ended';
-        window.cancelAnimationFrame(this.timer.animationId);
+        const that = this;
+        window.setTimeout(() => {
+            window.cancelAnimationFrame(that.timer.animationId);
+        }, 25);
         // switch play off and leave only refresh !!!! TO DO
     };
 }

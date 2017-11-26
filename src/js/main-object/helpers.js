@@ -2,7 +2,10 @@ import Create from './constructor';
 
 function createMainObjectHelpers() {
     Create.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
-        console.log(item);
+        this.loop.splice(this.loop.indexOf(item), 1);
+        if (this.loop < 1) {
+            this.end();
+        }
     };
 }
 

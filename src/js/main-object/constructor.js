@@ -1,4 +1,3 @@
-import prepare from '../engine/dispatcher';
 import compileSettings from '../settings';
 
 class Create {
@@ -31,7 +30,7 @@ class Create {
             object.decomposeMatrix();
         });
 
-        this.loop = prepare(this.objectList);
+        this.dispatcher();
     }
     reset() {
         this.objectList.forEach((object) => {
@@ -40,7 +39,7 @@ class Create {
             object.initMatrix(this.settings);
             object.decomposeMatrix();
         });
-        this.loop = prepare(this.objectList);
+        this.dispatcher();
     }
 }
 

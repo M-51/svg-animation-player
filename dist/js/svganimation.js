@@ -1,6 +1,228 @@
 var svganimation = (function (exports) {
 'use strict';
 
+// check if argument is undefined
+function undef(item) {
+    return (typeof item === 'undefined');
+}
+
+// check if expresion is a number
+function isNumeric(number) {
+    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
+}
+
+const defaultSettings = {
+    svg: document.querySelector('svg'),
+    showInterface: true,
+    interfaceAnimation: true,
+    interfaceSize: 1,
+    interfaceColor: '#000',
+    interfacePosition: 'auto',
+};
+
+
+function compileSettings(settings) {
+    const compiledSettings = {};
+    Object.keys(defaultSettings).forEach((rule) => {
+        if (!undef(settings) && !undef(settings[rule])) {
+            compiledSettings[rule] = settings[rule];
+        } else {
+            compiledSettings[rule] = defaultSettings[rule];
+        }
+    });
+    return compiledSettings;
+}
+
+class Create {
+    constructor() {
+        this.status = 'not started';
+        this.timer = {
+            animationId: 0,
+            startTime: 0,
+            time: 0,
+        };
+    }
+    init(...objects) {
+        // add all animated objects to "objectList" set
+        this.objectList = new Set();
+        objects.forEach((object) => {
+            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+                this.objectList.add(object);
+            }
+        });
+        // compile user settings
+        this.settings = compileSettings(this.settings);
+
+        // initialize all animated objects
+        this.objectList.forEach((object) => {
+            // remember starting attributtes
+            object.setVariables();
+            // initialize transformation matrix
+            object.initMatrix(this.settings);
+            // decompose initial matrix
+            object.decomposeMatrix();
+        });
+
+        this.dispatcher();
+    }
+    reset() {
+        this.objectList.forEach((object) => {
+            object.resetAttributes();
+            object.setVariables();
+            object.initMatrix(this.settings);
+            object.decomposeMatrix();
+        });
+        this.dispatcher();
+    }
+}
+
+function createPlayer$1() {
+    Create.prototype.play = function play() {
+        if (this.status === 'not started') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now();
+        } else if (this.status === 'paused') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now() - this.timer.time;
+        }
+        const that = this;
+        function startLoop() {
+            that.timer.time = Date.now() - that.timer.startTime;
+            that.frame(that.timer.time / 1000);
+            that.timer.animationId = window.requestAnimationFrame(startLoop);
+        }
+        this.timer.animationId = window.requestAnimationFrame(startLoop);
+    };
+
+    Create.prototype.pause = function pause() {
+        if (this.status === 'playing') {
+            this.status = 'paused';
+            window.cancelAnimationFrame(this.timer.animationId);
+        }
+    };
+
+    Create.prototype.refresh = function refresh() {
+        if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
+            this.status = 'not started';
+            window.cancelAnimationFrame(this.timer.animationId);
+            this.timer.startTime = 0;
+            this.timer.time = 0;
+
+            // reset all animated object to starting attributtes
+            this.reset();
+        }
+    };
+    Create.prototype.end = function end() {
+        this.status = 'ended';
+        const that = this;
+        window.setTimeout(() => {
+            window.cancelAnimationFrame(that.timer.animationId);
+        }, 25);
+        // switch play off and leave only refresh !!!! TO DO
+    };
+}
+
+function getAttributes(object) {
+    const list = new Map();
+    const { attributes } = object;
+    for (let i = 0; i < attributes.length; i += 1) {
+        if (attributes[i].specified) {
+            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+        }
+    }
+    return list;
+}
+
+function resetAttributes(object, attributes) {
+    // remove all attributes
+    while (object.attributes.length > 0) {
+        object.removeAttribute(object.attributes[0].name);
+    }
+    // set new attributes
+    attributes.forEach((value, key) => {
+        object.setAttribute(key, value);
+    });
+}
+
+function initMatrix(object, settings) {
+    let matrix = null;
+    const svgTransform = object.transform.baseVal;
+    if (svgTransform.length) {
+        svgTransform.consolidate();
+        ({ matrix } = svgTransform.getItem(0));
+    } else {
+        matrix = settings.svg.createSVGMatrix();
+    }
+    svgTransform.initialize(settings.svg.createSVGTransformFromMatrix(matrix));
+}
+
+function decomposeMatrix(m) {
+    const transform = {};
+    transform.translate = {
+        x: m.e,
+        y: m.f,
+    };
+    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
+    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
+
+    return transform;
+}
+
+class Obj {
+    constructor(item) {
+        this.item = item;
+    }
+    setVariables() {
+        this.variables = getAttributes(this.item);
+    }
+    initMatrix(settings) {
+        initMatrix(this.item, settings);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
+    resetAttributes() {
+        resetAttributes(this.item, this.variables);
+    }
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
+    }
+}
+
+function createDrawFunction$1() {
+    Create.prototype.frame = function frame(time) {
+        for (let i = 0; i < this.loop.length; i += 1) {
+            this.loop[i](time);
+        }
+        console.log(this.loop);
+    };
+}
+
+function splitArray(key, object) {
+    const keyEquationObject = [];
+    if (Array.isArray(object.animation[key])) {
+        object.animation[key].forEach((item) => {
+            keyEquationObject.push([key, item, object]);
+        });
+    } else {
+        keyEquationObject.push([key, object.animation[key], object]);
+    }
+    return keyEquationObject;
+}
+
+
+function separate(objectsList) {
+    const propertiesToAnimateList = [];
+    objectsList.forEach((object) => {
+        Object.keys(object.animation).forEach((key) => {
+            propertiesToAnimateList.push(...splitArray(key, object));
+        });
+    });
+    return propertiesToAnimateList;
+}
+
 function translate(matrix, x, y) {
     const modifiedMatrix = matrix;
 
@@ -171,49 +393,28 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-// check if argument is undefined
-function undef(item) {
-    return (typeof item === 'undefined');
+function applyAnimation(propertiesToAnimateList) {
+    const animationList = [];
+    propertiesToAnimateList.forEach((element) => {
+        const [key, animation, object] = element;
+        if (key === 'transform') {
+            animationList.push([chooseTransformMethod$1(object, animation), animation]);
+        }
+    });
+    return animationList;
 }
 
-// check if expresion is a number
-function isNumeric(number) {
-    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
-}
-
-function interval(animationFunction, range, local, loop) {
+function infiniteEndpoint(animationFunction, animation) {
     let rangeFunction;
-    if (local) {
+    if (animation.local) {
         rangeFunction = (t) => {
-            if (t >= range[0] && t <= range[1]) {
-                animationFunction(t - range[0]);
-            } else if (t > range[1]) {
-                loop.splice(loop.indexOf(rangeFunction), 1);
+            if (t >= animation.range[0]) {
+                animationFunction(t - animation.range[0]);
             }
         };
     } else {
         rangeFunction = (t) => {
-            if (t >= range[0] && t <= range[1]) {
-                animationFunction(t);
-            } else if (t > range[1]) {
-                loop.splice(loop.indexOf(rangeFunction), 1);
-            }
-        };
-    }
-    return rangeFunction;
-}
-
-function infiniteEndpoint(animationFunction, range, local) {
-    let rangeFunction;
-    if (local) {
-        rangeFunction = (t) => {
-            if (t >= range[0]) {
-                animationFunction(t - range[0]);
-            }
-        };
-    } else {
-        rangeFunction = (t) => {
-            if (t >= range[0]) {
+            if (t >= animation.range[0]) {
                 animationFunction(t);
             }
         };
@@ -221,20 +422,42 @@ function infiniteEndpoint(animationFunction, range, local) {
     return rangeFunction;
 }
 
-function oneTime(animationFunction, range, local, loop) {
+function interval(animationFunction, animation, deleteItemFromLoop) {
     let rangeFunction;
-    if (local) {
+    if (animation.local) {
         rangeFunction = (t) => {
-            if (t >= range) {
-                animationFunction(t - range);
-                loop.splice(loop.indexOf(rangeFunction), 1);
+            if (t >= animation.range[0] && t <= animation.range[1]) {
+                animationFunction(t - animation.range[0]);
+            } else if (t > animation.range[1]) {
+                deleteItemFromLoop(rangeFunction);
             }
         };
     } else {
         rangeFunction = (t) => {
-            if (t >= range) {
+            if (t >= animation.range[0] && t <= animation.range[1]) {
                 animationFunction(t);
-                loop.splice(loop.indexOf(rangeFunction), 1);
+            } else if (t > animation.range[1]) {
+                deleteItemFromLoop(rangeFunction);
+            }
+        };
+    }
+    return rangeFunction;
+}
+
+function oneTime(animationFunction, animation, deleteItemFromLoop) {
+    let rangeFunction;
+    if (animation.local) {
+        rangeFunction = (t) => {
+            if (t >= animation.range) {
+                animationFunction(t - animation.range);
+                deleteItemFromLoop(rangeFunction);
+            }
+        };
+    } else {
+        rangeFunction = (t) => {
+            if (t >= animation.range) {
+                animationFunction(t);
+                deleteItemFromLoop(rangeFunction);
             }
         };
     }
@@ -242,239 +465,51 @@ function oneTime(animationFunction, range, local, loop) {
     return rangeFunction;
 }
 
-function applyRange$1(animationFunction, range, local, loop) {
+function chooseRangeType(animationFunction, animation, deleteItemFromLoop) {
     let rangeFunction;
+    const { range } = animation;
     if (Array.isArray(range)) {
         if (range.length === 1) {
-            rangeFunction = infiniteEndpoint(animationFunction, range, local);
+            rangeFunction = infiniteEndpoint(animationFunction, animation);
         } else if (range.length === 2) {
-            rangeFunction = interval(animationFunction, range, local, loop);
+            rangeFunction = interval(animationFunction, animation, deleteItemFromLoop);
         }
     } else if (isNumeric(range)) {
-        rangeFunction = oneTime(animationFunction, range, local, loop);
+        rangeFunction = oneTime(animationFunction, animation, deleteItemFromLoop);
     }
     return rangeFunction;
 }
 
-function applyRange(animationFunction, animation, loop) {
-    if (animation.range) {
-        loop.push(applyRange$1(animationFunction, animation.range, animation.local, loop));
-    } else {
-        loop.push(animationFunction);
-    }
-}
-
-function sort(key, animation, object, loop) {
-    let animationFunction;
-    if (key === 'transform') {
-        animationFunction = chooseTransformMethod$1(object, animation);
-    }
-    applyRange(animationFunction, animation, loop);
-}
-
-function separate(key, object, loop) {
-    if (Array.isArray(object.animation[key])) {
-        object.animation[key].forEach((item) => {
-            sort(key, item, object, loop);
-        });
-    } else {
-        sort(key, object.animation[key], object, loop);
-    }
-}
-
-function prepare(objectsList) {
+function applyRange(animationList, deleteItemFromLoop) {
     const loop = [];
-
-    objectsList.forEach((object) => {
-        const keys = Object.keys(object.animation);
-        keys.forEach((key) => {
-            separate(key, object, loop);
-        });
+    animationList.forEach((element) => {
+        const [animationFunction, animation] = element;
+        if (animation.range) {
+            loop.push(chooseRangeType(animationFunction, animation, deleteItemFromLoop));
+        } else {
+            loop.push(animationFunction);
+        }
     });
     return loop;
 }
 
-const defaultSettings = {
-    svg: document.querySelector('svg'),
-    showInterface: true,
-    interfaceAnimation: true,
-    interfaceSize: 1,
-    interfaceColor: '#000',
-    interfacePosition: 'auto',
-};
-
-
-function compileSettings(settings) {
-    const compiledSettings = {};
-    Object.keys(defaultSettings).forEach((rule) => {
-        if (!undef(settings) && !undef(settings[rule])) {
-            compiledSettings[rule] = settings[rule];
-        } else {
-            compiledSettings[rule] = defaultSettings[rule];
-        }
-    });
-    return compiledSettings;
-}
-
-class Create {
-    constructor() {
-        this.status = 'not started';
-        this.timer = {
-            animationId: 0,
-            startTime: 0,
-            time: 0,
-        };
-    }
-    init(...objects) {
-        // add all animated objects to "objectList" set
-        this.objectList = new Set();
-        objects.forEach((object) => {
-            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
-                this.objectList.add(object);
-            }
-        });
-        // compile user settings
-        this.settings = compileSettings(this.settings);
-
-        // initialize all animated objects
-        this.objectList.forEach((object) => {
-            // remember starting attributtes
-            object.setVariables();
-            // initialize transformation matrix
-            object.initMatrix(this.settings);
-            // decompose initial matrix
-            object.decomposeMatrix();
-        });
-
-        this.loop = prepare(this.objectList);
-    }
-    reset() {
-        this.objectList.forEach((object) => {
-            object.resetAttributes();
-            object.setVariables();
-            object.initMatrix(this.settings);
-            object.decomposeMatrix();
-        });
-        this.loop = prepare(this.objectList);
-    }
-}
-
-function createPlayer$1() {
-    Create.prototype.play = function play() {
-        if (this.status === 'not started') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now();
-        } else if (this.status === 'paused') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now() - this.timer.time;
-        }
-        const that = this;
-        function startLoop() {
-            that.timer.time = Date.now() - that.timer.startTime;
-            that.frame(that.timer.time / 1000);
-            that.timer.animationId = window.requestAnimationFrame(startLoop);
-        }
-        this.timer.animationId = window.requestAnimationFrame(startLoop);
-    };
-
-    Create.prototype.pause = function pause() {
-        if (this.status === 'playing') {
-            this.status = 'paused';
-            window.cancelAnimationFrame(this.timer.animationId);
-        }
-    };
-
-    Create.prototype.refresh = function refresh() {
-        if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
-            this.status = 'not started';
-            window.cancelAnimationFrame(this.timer.animationId);
-            this.timer.startTime = 0;
-            this.timer.time = 0;
-
-            // reset all animated object to starting attributtes
-            this.reset();
-        }
-    };
-    Create.prototype.end = function end() {
-        this.status = 'ended';
-        window.cancelAnimationFrame(this.timer.animationId);
-        // switch play off and leave only refresh !!!! TO DO
+function createMainObjectDispatcher$1() {
+    Create.prototype.dispatcher = function dispatcher() {
+        // array of [key, animation, objecy] items
+        const propertiesToAnimateList = separate(this.objectList);
+        // array of [animationFunction, animation (equation. range etc...)]
+        const animationList = applyAnimation(propertiesToAnimateList);
+        // array of animationFunction with range applied
+        const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
+        this.loop = applyRange(animationList, deleteItemFromLoop);
     };
 }
 
-function getAttributes(object) {
-    const list = new Map();
-    const { attributes } = object;
-    for (let i = 0; i < attributes.length; i += 1) {
-        if (attributes[i].specified) {
-            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
-        }
-    }
-    return list;
-}
-
-function resetAttributes(object, attributes) {
-    // remove all attributes
-    while (object.attributes.length > 0) {
-        object.removeAttribute(object.attributes[0].name);
-    }
-    // set new attributes
-    attributes.forEach((value, key) => {
-        object.setAttribute(key, value);
-    });
-}
-
-function initMatrix(object, settings) {
-    let matrix = null;
-    const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
-        svgTransform.consolidate();
-        ({ matrix } = svgTransform.getItem(0));
-    } else {
-        matrix = settings.svg.createSVGMatrix();
-    }
-    svgTransform.initialize(settings.svg.createSVGTransformFromMatrix(matrix));
-}
-
-function decomposeMatrix(m) {
-    const transform = {};
-    transform.translate = {
-        x: m.e,
-        y: m.f,
-    };
-    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
-    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
-
-    return transform;
-}
-
-class Obj {
-    constructor(item) {
-        this.item = item;
-    }
-    setVariables() {
-        this.variables = getAttributes(this.item);
-    }
-    initMatrix(settings) {
-        initMatrix(this.item, settings);
-        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
-        this.SVGTransform = this.item.transform.baseVal.getItem(0);
-    }
-    resetAttributes() {
-        resetAttributes(this.item, this.variables);
-    }
-    decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
-    }
-    setMatrix(matrix) {
-        this.SVGTransform.setMatrix(matrix);
-    }
-}
-
-function createDrawFunction$1() {
-    Create.prototype.frame = function frame(time) {
-        for (let i = 0; i < this.loop.length; i += 1) {
-            this.loop[i](time);
+function createMainObjectHelpers$1() {
+    Create.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
+        this.loop.splice(this.loop.indexOf(item), 1);
+        if (this.loop < 1) {
+            this.end();
         }
     };
 }
@@ -484,6 +519,8 @@ function createDrawFunction$1() {
 // import { add, init } from './engine/controler';
 createPlayer$1();
 createDrawFunction$1();
+createMainObjectDispatcher$1();
+createMainObjectHelpers$1();
 
 exports.Obj = Obj;
 exports.Create = Create;

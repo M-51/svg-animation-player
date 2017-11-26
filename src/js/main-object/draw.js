@@ -5,6 +5,7 @@ function createDrawFunction() {
         for (let i = 0; i < this.loop.length; i += 1) {
             this.loop[i](time);
         }
+        console.log(this.loop);
     };
 }
 
