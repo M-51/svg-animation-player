@@ -1,15 +1,15 @@
 
 
-function initMatrix(object, settings) {
+function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
     if (svgTransform.length) {
         svgTransform.consolidate();
         ({ matrix } = svgTransform.getItem(0));
     } else {
-        matrix = settings.svg.createSVGMatrix();
+        matrix = svg.createSVGMatrix();
     }
-    svgTransform.initialize(settings.svg.createSVGTransformFromMatrix(matrix));
+    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
 }
 
 function decomposeMatrix(m) {

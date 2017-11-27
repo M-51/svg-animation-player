@@ -41,6 +41,9 @@ function createPlayer() {
         const that = this;
         window.setTimeout(() => {
             window.cancelAnimationFrame(that.timer.animationId);
+            if (that.settings.restartAtTheEnd) {
+                that.refresh();
+            }
         }, 25);
         // switch play off and leave only refresh !!!! TO DO
     };

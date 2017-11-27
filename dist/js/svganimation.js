@@ -11,13 +11,24 @@ function isNumeric(number) {
     return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
 }
 
+function findSVGParent(element) {
+    let el = element;
+    while (el.tagName) {
+        if (el.tagName.toLowerCase() === 'svg') {
+            return el;
+        }
+        el = el.parentNode;
+    }
+    throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
+}
+
 const defaultSettings = {
-    svg: document.querySelector('svg'),
     showInterface: true,
     interfaceAnimation: true,
     interfaceSize: 1,
     interfaceColor: '#000',
     interfacePosition: 'auto',
+    restartAtTheEnd: false,
 };
 
 
@@ -43,6 +54,8 @@ class Create {
         };
     }
     init(...objects) {
+        // check if objects exist
+        if (objects.length === 0) { throw new Error('No objects to animate. Add objects to "init" function'); }
         // add all animated objects to "objectList" set
         this.objectList = new Set();
         objects.forEach((object) => {
@@ -50,6 +63,10 @@ class Create {
                 this.objectList.add(object);
             }
         });
+        // check if objectList is not empty
+        if (this.objectList.size === 0) { throw new Error('No objects to animate. At least one object must have "animate" property'); }
+        // find svg element
+        this.svg = findSVGParent(objects[0].item);
         // compile user settings
         this.settings = compileSettings(this.settings);
 
@@ -58,7 +75,7 @@ class Create {
             // remember starting attributtes
             object.setVariables();
             // initialize transformation matrix
-            object.initMatrix(this.settings);
+            object.initMatrix(this.svg);
             // decompose initial matrix
             object.decomposeMatrix();
         });
@@ -69,7 +86,7 @@ class Create {
         this.objectList.forEach((object) => {
             object.resetAttributes();
             object.setVariables();
-            object.initMatrix(this.settings);
+            object.initMatrix(this.svg);
             object.decomposeMatrix();
         });
         this.dispatcher();
@@ -117,6 +134,9 @@ function createPlayer$1() {
         const that = this;
         window.setTimeout(() => {
             window.cancelAnimationFrame(that.timer.animationId);
+            if (that.settings.restartAtTheEnd) {
+                that.refresh();
+            }
         }, 25);
         // switch play off and leave only refresh !!!! TO DO
     };
@@ -144,16 +164,16 @@ function resetAttributes(object, attributes) {
     });
 }
 
-function initMatrix(object, settings) {
+function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
     if (svgTransform.length) {
         svgTransform.consolidate();
         ({ matrix } = svgTransform.getItem(0));
     } else {
-        matrix = settings.svg.createSVGMatrix();
+        matrix = svg.createSVGMatrix();
     }
-    svgTransform.initialize(settings.svg.createSVGTransformFromMatrix(matrix));
+    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
 }
 
 function decomposeMatrix(m) {
@@ -196,7 +216,6 @@ function createDrawFunction$1() {
         for (let i = 0; i < this.loop.length; i += 1) {
             this.loop[i](time);
         }
-        console.log(this.loop);
     };
 }
 

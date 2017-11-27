@@ -1,4 +1,5 @@
 import compileSettings from '../settings';
+import { findSVGParent } from '../utils';
 
 class Create {
     constructor() {
@@ -10,6 +11,8 @@ class Create {
         };
     }
     init(...objects) {
+        // check if objects exist
+        if (objects.length === 0) { throw new Error('No objects to animate. Add objects to "init" function'); }
         // add all animated objects to "objectList" set
         this.objectList = new Set();
         objects.forEach((object) => {
@@ -17,6 +20,10 @@ class Create {
                 this.objectList.add(object);
             }
         });
+        // check if objectList is not empty
+        if (this.objectList.size === 0) { throw new Error('No objects to animate. At least one object must have "animate" property'); }
+        // find svg element
+        this.svg = findSVGParent(objects[0].item);
         // compile user settings
         this.settings = compileSettings(this.settings);
 
@@ -25,7 +32,7 @@ class Create {
             // remember starting attributtes
             object.setVariables();
             // initialize transformation matrix
-            object.initMatrix(this.settings);
+            object.initMatrix(this.svg);
             // decompose initial matrix
             object.decomposeMatrix();
         });
@@ -36,7 +43,7 @@ class Create {
         this.objectList.forEach((object) => {
             object.resetAttributes();
             object.setVariables();
-            object.initMatrix(this.settings);
+            object.initMatrix(this.svg);
             object.decomposeMatrix();
         });
         this.dispatcher();
