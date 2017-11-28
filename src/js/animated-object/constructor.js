@@ -22,6 +22,9 @@ class Obj {
     setMatrix(matrix) {
         this.SVGTransform.setMatrix(matrix);
     }
+    setAttribute(name, value) {
+        this.item.setAttributeNS(null, name, value);
+    }
 }
 
 export default Obj;

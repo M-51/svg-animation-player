@@ -1,6 +1,6 @@
 const test = new svganimation.Obj(document.getElementById('test'));
 
-test.animationa = {
+test.animation = {
     transform:
         [{
             range: [1, 5],
@@ -11,7 +11,9 @@ test.animationa = {
             },
             rotate: t => t,
         }],
-    r: t => 2 * t,
+    height: {
+        value: t => 100 * (1 - Math.cos(t)),
+    },
 };
 
 const dupa = new svganimation.Create();

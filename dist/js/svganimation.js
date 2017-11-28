@@ -209,6 +209,9 @@ class Obj {
     setMatrix(matrix) {
         this.SVGTransform.setMatrix(matrix);
     }
+    setAttribute(name, value) {
+        this.item.setAttributeNS(null, name, value);
+    }
 }
 
 function createDrawFunction$1() {
@@ -412,12 +415,22 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
+function applyAttributeAnimation$1(object, key) {
+    const animationFunction = (time) => {
+        const { value } = object.animation[key];
+        object.setAttribute(key, value(time));
+    };
+    return animationFunction;
+}
+
 function applyAnimation(propertiesToAnimateList) {
     const animationList = [];
     propertiesToAnimateList.forEach((element) => {
         const [key, animation, object] = element;
         if (key === 'transform') {
             animationList.push([chooseTransformMethod$1(object, animation), animation]);
+        } else {
+            animationList.push([applyAttributeAnimation$1(object, key), animation]);
         }
     });
     return animationList;
