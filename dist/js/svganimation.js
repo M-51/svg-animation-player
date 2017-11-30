@@ -1,6 +1,78 @@
 var svganimation = (function (exports) {
 'use strict';
 
+function getAttributes(object) {
+    const list = new Map();
+    const { attributes } = object;
+    for (let i = 0; i < attributes.length; i += 1) {
+        if (attributes[i].specified) {
+            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+        }
+    }
+    return list;
+}
+
+function resetAttributes(object, attributes) {
+    // remove all attributes
+    while (object.attributes.length > 0) {
+        object.removeAttribute(object.attributes[0].name);
+    }
+    // set new attributes
+    attributes.forEach((value, key) => {
+        object.setAttribute(key, value);
+    });
+}
+
+function initMatrix(object, svg) {
+    let matrix = null;
+    const svgTransform = object.transform.baseVal;
+    if (svgTransform.length) {
+        svgTransform.consolidate();
+        ({ matrix } = svgTransform.getItem(0));
+    } else {
+        matrix = svg.createSVGMatrix();
+    }
+    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
+}
+
+function decomposeMatrix(m) {
+    const transform = {};
+    transform.translate = {
+        x: m.e,
+        y: m.f,
+    };
+    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
+    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
+
+    return transform;
+}
+
+class animatedObject {
+    constructor(item) {
+        this.item = item;
+    }
+    setVariables() {
+        this.variables = getAttributes(this.item);
+    }
+    initMatrix(settings) {
+        initMatrix(this.item, settings);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
+    resetAttributes() {
+        resetAttributes(this.item, this.variables);
+    }
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
+    }
+    setAttribute(name, value) {
+        this.item.setAttributeNS(null, name, value);
+    }
+}
+
 // check if argument is undefined
 function undef(item) {
     return (typeof item === 'undefined');
@@ -44,7 +116,7 @@ function compileSettings(settings) {
     return compiledSettings;
 }
 
-class Create {
+class SVGAnimation {
     constructor() {
         this.status = 'not started';
         this.timer = {
@@ -93,32 +165,33 @@ class Create {
     }
 }
 
-function createPlayer$1() {
-    Create.prototype.play = function play() {
-        if (this.status === 'not started') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now();
-        } else if (this.status === 'paused') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now() - this.timer.time;
-        }
+function createPlayer() {
+    SVGAnimation.prototype.play = function play() {
         const that = this;
         function startLoop() {
             that.timer.time = Date.now() - that.timer.startTime;
             that.frame(that.timer.time / 1000);
             that.timer.animationId = window.requestAnimationFrame(startLoop);
         }
-        this.timer.animationId = window.requestAnimationFrame(startLoop);
+        if (this.status === 'not started') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now();
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+        } else if (this.status === 'paused') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now() - this.timer.time;
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+        }
     };
 
-    Create.prototype.pause = function pause() {
+    SVGAnimation.prototype.pause = function pause() {
         if (this.status === 'playing') {
             this.status = 'paused';
             window.cancelAnimationFrame(this.timer.animationId);
         }
     };
 
-    Create.prototype.refresh = function refresh() {
+    SVGAnimation.prototype.refresh = function refresh() {
         if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
             this.status = 'not started';
             window.cancelAnimationFrame(this.timer.animationId);
@@ -129,7 +202,7 @@ function createPlayer$1() {
             this.reset();
         }
     };
-    Create.prototype.end = function end() {
+    SVGAnimation.prototype.end = function end() {
         this.status = 'ended';
         const that = this;
         window.setTimeout(() => {
@@ -142,80 +215,8 @@ function createPlayer$1() {
     };
 }
 
-function getAttributes(object) {
-    const list = new Map();
-    const { attributes } = object;
-    for (let i = 0; i < attributes.length; i += 1) {
-        if (attributes[i].specified) {
-            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
-        }
-    }
-    return list;
-}
-
-function resetAttributes(object, attributes) {
-    // remove all attributes
-    while (object.attributes.length > 0) {
-        object.removeAttribute(object.attributes[0].name);
-    }
-    // set new attributes
-    attributes.forEach((value, key) => {
-        object.setAttribute(key, value);
-    });
-}
-
-function initMatrix(object, svg) {
-    let matrix = null;
-    const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
-        svgTransform.consolidate();
-        ({ matrix } = svgTransform.getItem(0));
-    } else {
-        matrix = svg.createSVGMatrix();
-    }
-    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
-}
-
-function decomposeMatrix(m) {
-    const transform = {};
-    transform.translate = {
-        x: m.e,
-        y: m.f,
-    };
-    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
-    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
-
-    return transform;
-}
-
-class Obj {
-    constructor(item) {
-        this.item = item;
-    }
-    setVariables() {
-        this.variables = getAttributes(this.item);
-    }
-    initMatrix(settings) {
-        initMatrix(this.item, settings);
-        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
-        this.SVGTransform = this.item.transform.baseVal.getItem(0);
-    }
-    resetAttributes() {
-        resetAttributes(this.item, this.variables);
-    }
-    decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
-    }
-    setMatrix(matrix) {
-        this.SVGTransform.setMatrix(matrix);
-    }
-    setAttribute(name, value) {
-        this.item.setAttributeNS(null, name, value);
-    }
-}
-
-function createDrawFunction$1() {
-    Create.prototype.frame = function frame(time) {
+function createDrawFunction() {
+    SVGAnimation.prototype.frame = function frame(time) {
         for (let i = 0; i < this.loop.length; i += 1) {
             this.loop[i](time);
         }
@@ -525,8 +526,8 @@ function applyRange(animationList, deleteItemFromLoop) {
     return loop;
 }
 
-function createMainObjectDispatcher$1() {
-    Create.prototype.dispatcher = function dispatcher() {
+function createMainObjectDispatcher() {
+    SVGAnimation.prototype.dispatcher = function dispatcher() {
         // array of [key, animation, objecy] items
         const propertiesToAnimateList = separate(this.objectList);
         // array of [animationFunction, animation (equation. range etc...)]
@@ -537,8 +538,8 @@ function createMainObjectDispatcher$1() {
     };
 }
 
-function createMainObjectHelpers$1() {
-    Create.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
+function createMainObjectHelpers() {
+    SVGAnimation.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
         this.loop.splice(this.loop.indexOf(item), 1);
         if (this.loop < 1) {
             this.end();
@@ -546,16 +547,13 @@ function createMainObjectHelpers$1() {
     };
 }
 
-// import buttons from './interface/interface';
-// import { compileSettings } from './settings';
-// import { add, init } from './engine/controler';
-createPlayer$1();
-createDrawFunction$1();
-createMainObjectDispatcher$1();
-createMainObjectHelpers$1();
+createPlayer();
+createDrawFunction();
+createMainObjectDispatcher();
+createMainObjectHelpers();
 
-exports.Obj = Obj;
-exports.Create = Create;
+exports.Obj = animatedObject;
+exports.Create = SVGAnimation;
 
 return exports;
 

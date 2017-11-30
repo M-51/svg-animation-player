@@ -1,16 +1,14 @@
-// import buttons from './interface/interface';
-import player from './main-object/player';
-// import { compileSettings } from './settings';
-import Obj from './animated-object/constructor';
-// import { add, init } from './engine/controler';
-import Create from './main-object/constructor';
-import draw from './main-object/draw';
-import dispatcher from './main-object/dispatcher';
-import mainObjectHelpers from './main-object/helpers';
+import animatedObject from './animated-object/constructor'; // Objects to animate
+import SVGAnimation from './main-object/constructor'; // SVGanimation objects
 
-player();
-draw();
-dispatcher();
-mainObjectHelpers();
+import createPlayer from './main-object/player';
+import createDrawFunction from './main-object/draw';
+import createMainObjectDispatcher from './main-object/dispatcher';
+import createMainObjectHelpers from './main-object/helpers';
 
-export { Obj, Create };
+createPlayer();
+createDrawFunction();
+createMainObjectDispatcher();
+createMainObjectHelpers();
+
+export { animatedObject as Obj, SVGAnimation as Create };

@@ -1,10 +1,10 @@
-import Create from './constructor';
+import SVGAnimation from './constructor';
 import separate from '../engine/separate';
 import applyAnimation from '../engine/animation/apply-animation';
 import applyRange from '../engine/range/apply-range';
 
 function createMainObjectDispatcher() {
-    Create.prototype.dispatcher = function dispatcher() {
+    SVGAnimation.prototype.dispatcher = function dispatcher() {
         // array of [key, animation, objecy] items
         const propertiesToAnimateList = separate(this.objectList);
         // array of [animationFunction, animation (equation. range etc...)]

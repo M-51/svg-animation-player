@@ -1,31 +1,32 @@
-import Create from './constructor';
+import SVGAnimation from './constructor';
 
 function createPlayer() {
-    Create.prototype.play = function play() {
-        if (this.status === 'not started') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now();
-        } else if (this.status === 'paused') {
-            this.status = 'playing';
-            this.timer.startTime = Date.now() - this.timer.time;
-        }
+    SVGAnimation.prototype.play = function play() {
         const that = this;
         function startLoop() {
             that.timer.time = Date.now() - that.timer.startTime;
             that.frame(that.timer.time / 1000);
             that.timer.animationId = window.requestAnimationFrame(startLoop);
         }
-        this.timer.animationId = window.requestAnimationFrame(startLoop);
+        if (this.status === 'not started') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now();
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+        } else if (this.status === 'paused') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now() - this.timer.time;
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+        }
     };
 
-    Create.prototype.pause = function pause() {
+    SVGAnimation.prototype.pause = function pause() {
         if (this.status === 'playing') {
             this.status = 'paused';
             window.cancelAnimationFrame(this.timer.animationId);
         }
     };
 
-    Create.prototype.refresh = function refresh() {
+    SVGAnimation.prototype.refresh = function refresh() {
         if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
             this.status = 'not started';
             window.cancelAnimationFrame(this.timer.animationId);
@@ -36,7 +37,7 @@ function createPlayer() {
             this.reset();
         }
     };
-    Create.prototype.end = function end() {
+    SVGAnimation.prototype.end = function end() {
         this.status = 'ended';
         const that = this;
         window.setTimeout(() => {

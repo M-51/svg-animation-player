@@ -1,7 +1,7 @@
-import Create from './constructor';
+import SVGAnimation from './constructor';
 
 function createDrawFunction() {
-    Create.prototype.frame = function frame(time) {
+    SVGAnimation.prototype.frame = function frame(time) {
         for (let i = 0; i < this.loop.length; i += 1) {
             this.loop[i](time);
         }

@@ -1,7 +1,7 @@
 import compileSettings from '../settings';
 import { findSVGParent } from '../utils';
 
-class Create {
+class SVGAnimation {
     constructor() {
         this.status = 'not started';
         this.timer = {
@@ -50,4 +50,4 @@ class Create {
     }
 }
 
-export default Create;
+export default SVGAnimation;

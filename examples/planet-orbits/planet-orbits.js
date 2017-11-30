@@ -1,18 +1,14 @@
-const test = new svganimation.Obj(document.getElementById('test'));
 
+const test = new svganimation.Obj(document.getElementById('test'));
 test.animation = {
-    transform:
-        [{
-            range: [1, 5],
-            local: true,
-            translate: {
-                x: t => 100 * Math.cos(2 * t),
-                y: t => 100 * Math.sin(2 * t),
-            },
-            rotate: t => t,
-        }],
-    height: {
-        value: t => 100 * (1 - Math.cos(t)),
+    transform: {
+        translate: {
+            x: t => 100 * Math.cos(2 * t),
+            y: t => 150 * Math.sin(2 * t),
+        },
+    },
+    r: {
+        value: t => 20 + (5 * Math.sin(t)),
     },
 };
 

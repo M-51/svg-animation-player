@@ -1,7 +1,7 @@
 import { getAttributes, resetAttributes } from './helpers/attributes';
 import { initMatrix, decomposeMatrix } from './helpers/matrix';
 
-class Obj {
+class animatedObject {
     constructor(item) {
         this.item = item;
     }
@@ -27,4 +27,4 @@ class Obj {
     }
 }
 
-export default Obj;
+export default animatedObject;

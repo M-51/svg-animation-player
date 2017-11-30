@@ -1,5 +1,3 @@
-
-
 function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
