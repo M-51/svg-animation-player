@@ -1,10 +1,10 @@
 
-const test = new svganimation.Obj(document.getElementById('test'));
-test.animation = {
+const circle = new svganimation.Obj(document.getElementById('test'));
+circle.animation = {
     transform: {
         translate: {
-            x: t => 100 * Math.cos(2 * t),
-            y: t => 150 * Math.sin(2 * t),
+            x: t => 100 * Math.cos(5 * t),
+            y: t => 100 * Math.sin(5 * t),
         },
     },
     r: {
@@ -12,6 +12,6 @@ test.animation = {
     },
 };
 
-const dupa = new svganimation.Create();
+const animation1 = new svganimation.Create();
 
-dupa.init(test);
+animation1.init(circle);
