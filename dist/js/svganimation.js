@@ -1,6 +1,78 @@
 var svganimation = (function (exports) {
 'use strict';
 
+function getAttributes(object) {
+    const list = new Map();
+    const { attributes } = object;
+    for (let i = 0; i < attributes.length; i += 1) {
+        if (attributes[i].specified) {
+            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+        }
+    }
+    return list;
+}
+
+function resetAttributes(object, attributes) {
+    // remove all attributes
+    while (object.attributes.length > 0) {
+        object.removeAttribute(object.attributes[0].name);
+    }
+    // set new attributes
+    attributes.forEach((value, key) => {
+        object.setAttribute(key, value);
+    });
+}
+
+function initMatrix(object, svg) {
+    let matrix = null;
+    const svgTransform = object.transform.baseVal;
+    if (svgTransform.length) {
+        svgTransform.consolidate();
+        ({ matrix } = svgTransform.getItem(0));
+    } else {
+        matrix = svg.createSVGMatrix();
+    }
+    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
+}
+
+function decomposeMatrix(m) {
+    const transform = {};
+    transform.translate = {
+        x: m.e,
+        y: m.f,
+    };
+    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
+    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
+
+    return transform;
+}
+
+class animatedObject {
+    constructor(item) {
+        this.item = item;
+    }
+    setVariables() {
+        this.variables = getAttributes(this.item);
+    }
+    initMatrix(settings) {
+        initMatrix(this.item, settings);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
+    resetAttributes() {
+        resetAttributes(this.item, this.variables);
+    }
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
+    }
+    setAttribute(name, value) {
+        this.item.setAttributeNS(null, name, value);
+    }
+}
+
 // check if argument is undefined
 function undef(item) {
     return (typeof item === 'undefined');
@@ -25,179 +97,189 @@ function setAttrs(element, ...attributtes) {
     });
 }
 
+function findSVGParent(element) {
+    let el = element;
+    while (el.tagName) {
+        if (el.tagName.toLowerCase() === 'svg') {
+            return el;
+        }
+        el = el.parentNode;
+    }
+    throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
+}
+
 const defaultSettings = {
-    svg: document.querySelector('svg'),
     showInterface: true,
     interfaceAnimation: true,
     interfaceSize: 1,
     interfaceColor: '#000',
     interfacePosition: 'auto',
+    restartAtTheEnd: false,
 };
-const compiledSettings = {};
 
-function compileSettings() {
+
+function compileSettings(settings) {
+    const compiledSettings = {};
     Object.keys(defaultSettings).forEach((rule) => {
-        if (!undef(svganimation.settings) && !undef(svganimation.settings[rule])) {
-            compiledSettings[rule] = svganimation.settings[rule];
+        if (!undef(settings) && !undef(settings[rule])) {
+            compiledSettings[rule] = settings[rule];
         } else {
             compiledSettings[rule] = defaultSettings[rule];
         }
     });
+    return compiledSettings;
 }
 
-// arrows
-const marker = createElNS('marker');
-marker.id = 'arrow';
-setAttrs(marker, ['viewBox', '0 0 10 10'], ['refX', '1'], ['refY', '5'], ['markerWidth', '3'], ['markerHeight', '3'], ['orient', 'auto']);
-
-
-// arrow path
-const path = createElNS('path');
-setAttrs(path, ['d', 'M 0 0 L 10 5 L 0 10 z']);
-marker.appendChild(path);
-
-
-// icons
-const refresh = createElNS('g');
-const arc1 = createElNS('path');
-const arc2 = createElNS('path');
-setAttrs(arc1, ['d', 'M-10 0 A 10 10 0 0 1 0 -10'], ['marker-end', 'url(#arrow)']);
-setAttrs(arc2, ['d', 'M10 0 A 10 10 0 0 1 0 10'], ['marker-end', 'url(#arrow)']);
-refresh.appendChild(arc1);
-refresh.appendChild(arc2);
-setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)']);
-
-
-// button
-const button = createElNS('rect');
-setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
-
-// group button and icon
-
-const refreshGroup = createElNS('g');
-refreshGroup.appendChild(refresh);
-refreshGroup.appendChild(button);
-
-// set button and icons to correct position at the bottom left of svg
-function setPosition() {
-    const viewBox = compiledSettings.svg.viewBox.baseVal;
-    const matrix = compiledSettings.svg.createSVGMatrix();
-    matrix.e = viewBox.x + 25;
-    matrix.f = viewBox.y + (viewBox.height - 25);
-    refreshGroup.transform.baseVal.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
-}
-
-function addUserSettings() {
-    // set color
-    setAttrs(refresh, ['stroke', compiledSettings.interfaceColor]);
-    setAttrs(marker, ['fill', compiledSettings.interfaceColor]);
-
-    // set interface size
-    const { matrix } = refreshGroup.transform.baseVal.getItem(0);
-    matrix.a = compiledSettings.interfaceSize;
-    matrix.d = compiledSettings.interfaceSize;
-
-    // set interface position
-    if (compiledSettings.interfacePosition !== 'auto') {
-        [matrix.e, matrix.f] = compiledSettings.interfacePosition;
+class SVGAnimation {
+    constructor() {
+        this.status = 'not started';
+        this.timer = {
+            animationId: 0,
+            startTime: 0,
+            time: 0,
+        };
     }
+    init(...objects) {
+        // check if objects exist
+        if (objects.length === 0) { throw new Error('No objects to animate. Add objects to "init" function'); }
+        // add all animated objects to "objectList" set
+        this.objectList = new Set();
+        objects.forEach((object) => {
+            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+                this.objectList.add(object);
+            }
+        });
+        // check if objectList is not empty
+        if (this.objectList.size === 0) { throw new Error('No objects to animate. At least one object must have "animate" property'); }
+        // find svg element
+        this.svg = findSVGParent(objects[0].item);
+        // compile user settings
+        this.settings = compileSettings(this.settings);
 
-    refreshGroup.transform.baseVal.getItem(0).setMatrix(matrix);
-}
+        // initialize all animated objects
+        this.objectList.forEach((object) => {
+            // remember starting attributtes
+            object.setVariables();
+            // initialize transformation matrix
+            object.initMatrix(this.svg);
+            // decompose initial matrix
+            object.decomposeMatrix();
+        });
 
-function switchRefreshOff() {
-    setAttrs(refresh, ['display', 'none']);
-}
+        this.dispatcher();
 
-function switchRefreshOn() {
-    setAttrs(refresh, ['display', 'block']);
-}
-
-function addButtonToDOM() {
-    let defs = compiledSettings.svg.getElementsByTagName('defs')[0];
-
-    // check for defs element in DOM, if not exist - add it
-    if (!defs) {
-        defs = createElNS('defs');
-        compiledSettings.svg.insertBefore(defs, compiledSettings.svg.firstChild);
+        if (this.settings.showInterface) {
+            this.interfaceControler = this.interfaceControler();
+        }
     }
-
-    setPosition();
-
-    addUserSettings();
-
-    // add button to DOM
-    defs.appendChild(marker);
-    compiledSettings.svg.appendChild(refreshGroup);
-}
-
-const group = createElNS('g');
-const playPause1 = createElNS('polygon');
-const playPause2 = createElNS('polygon');
-
-setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
-setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
-
-
-group.appendChild(playPause1);
-group.appendChild(playPause2);
-
-// button
-const button$1 = createElNS('rect');
-setAttrs(button$1, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
-
-// group button and icon
-
-const playPauseGroup = createElNS('g');
-playPauseGroup.appendChild(group);
-playPauseGroup.appendChild(button$1);
-
-// set button and icons to correct position at the bottom left of svg
-function setPosition$1() {
-    const viewBox = compiledSettings.svg.viewBox.baseVal;
-    const matrix = compiledSettings.svg.createSVGMatrix();
-    matrix.e = viewBox.x + 25;
-    matrix.f = viewBox.y + (viewBox.height - 25);
-    playPauseGroup.transform.baseVal.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
-}
-
-function addUserSettings$1() {
-    // set color
-    setAttrs(group, ['fill', compiledSettings.interfaceColor]);
-
-    // set interface size
-    const { matrix } = playPauseGroup.transform.baseVal.getItem(0);
-    matrix.a = compiledSettings.interfaceSize;
-    matrix.d = compiledSettings.interfaceSize;
-
-    // set interface position
-    if (compiledSettings.interfacePosition !== 'auto') {
-        [matrix.e, matrix.f] = compiledSettings.interfacePosition;
+    reset() {
+        this.objectList.forEach((object) => {
+            object.resetAttributes();
+            object.setVariables();
+            object.initMatrix(this.svg);
+            object.decomposeMatrix();
+        });
+        this.dispatcher();
     }
-
-    playPauseGroup.transform.baseVal.getItem(0).setMatrix(matrix);
 }
 
-function switchToPause() {
-    setAttrs(playPause1, ['points', '-9,-10 -9,10 -2,10 -2,-10']);
-    setAttrs(playPause2, ['points', '2,-10 2,10 9,10 9,-10']);
-}
-function switchToPlay() {
-    setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
-    setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+function createPlayer() {
+    SVGAnimation.prototype.play = function play() {
+        const that = this;
+        function startLoop() {
+            that.timer.time = Date.now() - that.timer.startTime;
+            that.frame(that.timer.time / 1000);
+            that.timer.animationId = window.requestAnimationFrame(startLoop);
+        }
+        if (this.status === 'not started') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now();
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+            if (this.settings.showInterface) {
+                this.interfaceControler.playPause.pause();
+                this.interfaceControler.refresh.on();
+            }
+        } else if (this.status === 'paused') {
+            this.status = 'playing';
+            this.timer.startTime = Date.now() - this.timer.time;
+            this.timer.animationId = window.requestAnimationFrame(startLoop);
+            if (this.settings.showInterface) {
+                this.interfaceControler.playPause.pause();
+            }
+        }
+    };
+
+    SVGAnimation.prototype.pause = function pause() {
+        if (this.status === 'playing') {
+            this.status = 'paused';
+            window.cancelAnimationFrame(this.timer.animationId);
+            if (this.settings.showInterface) {
+                this.interfaceControler.playPause.play();
+            }
+        }
+    };
+
+    SVGAnimation.prototype.refresh = function refresh() {
+        if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
+            this.status = 'not started';
+            window.cancelAnimationFrame(this.timer.animationId);
+            this.timer.startTime = 0;
+            this.timer.time = 0;
+            if (this.settings.showInterface) {
+                this.interfaceControler.playPause.on();
+                this.interfaceControler.refresh.off();
+            }
+
+            // reset all animated object to starting attributtes
+            this.reset();
+        }
+    };
+    SVGAnimation.prototype.end = function end() {
+        if (this.status === 'playing' || this.status === 'paused') {
+            this.status = 'ended';
+            const that = this;
+            window.setTimeout(() => {
+                window.cancelAnimationFrame(that.timer.animationId);
+                if (that.settings.restartAtTheEnd) {
+                    that.refresh();
+                }
+                if (this.settings.showInterface) {
+                    this.interfaceControler.playPause.off();
+                }
+            }, 25);
+        }
+    };
 }
 
-function addButtonToDOM$1() {
-    setPosition$1();
-    addUserSettings$1();
-    compiledSettings.svg.appendChild(playPauseGroup);
+function createDrawFunction() {
+    SVGAnimation.prototype.frame = function frame(time) {
+        for (let i = 0; i < this.loop.length; i += 1) {
+            this.loop[i](time);
+        }
+    };
 }
 
-function start$1() {
-    if (compiledSettings.showInterface) {
-        addButtonToDOM();
-        addButtonToDOM$1();
+function splitArray(key, object) {
+    const keyEquationObject = [];
+    if (Array.isArray(object.animation[key])) {
+        object.animation[key].forEach((item) => {
+            keyEquationObject.push([key, item, object]);
+        });
+    } else {
+        keyEquationObject.push([key, object.animation[key], object]);
     }
+    return keyEquationObject;
+}
+
+
+function separate(objectsList) {
+    const propertiesToAnimateList = [];
+    objectsList.forEach((object) => {
+        Object.keys(object.animation).forEach((key) => {
+            propertiesToAnimateList.push(...splitArray(key, object));
+        });
+    });
+    return propertiesToAnimateList;
 }
 
 function translate(matrix, x, y) {
@@ -208,7 +290,6 @@ function translate(matrix, x, y) {
 
     return modifiedMatrix;
 }
-
 function rotate(matrix, angle, s) {
     const modifiedMatrix = matrix;
 
@@ -371,60 +452,81 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-function interval(animationFunction, range, local) {
+function applyAttributeAnimation$1(object, key) {
+    const animationFunction = (time) => {
+        const { value } = object.animation[key];
+        object.setAttribute(key, value(time));
+    };
+    return animationFunction;
+}
+
+function applyAnimation(propertiesToAnimateList) {
+    const animationList = [];
+    propertiesToAnimateList.forEach((element) => {
+        const [key, animation, object] = element;
+        if (key === 'transform') {
+            animationList.push([chooseTransformMethod$1(object, animation), animation]);
+        } else {
+            animationList.push([applyAttributeAnimation$1(object, key), animation]);
+        }
+    });
+    return animationList;
+}
+
+function infiniteEndpoint(animationFunction, animation) {
     let rangeFunction;
-    if (local) {
+    if (animation.local) {
         rangeFunction = (t) => {
-            if (t >= range[0] && t <= range[1]) {
-                animationFunction(t - range[0]);
-            } else if (t > range[1]) {
-                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            if (t >= animation.range[0]) {
+                animationFunction(t - animation.range[0]);
             }
         };
     } else {
         rangeFunction = (t) => {
-            if (t >= range[0] && t <= range[1]) {
+            if (t >= animation.range[0]) {
                 animationFunction(t);
-            } else if (t > range[1]) {
-                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
             }
         };
     }
     return rangeFunction;
 }
 
-function infiniteEndpoint(animationFunction, range, local) {
+function interval(animationFunction, animation, deleteItemFromLoop) {
     let rangeFunction;
-    if (local) {
+    if (animation.local) {
         rangeFunction = (t) => {
-            if (t >= range[0]) {
-                animationFunction(t - range[0]);
+            if (t >= animation.range[0] && t <= animation.range[1]) {
+                animationFunction(t - animation.range[0]);
+            } else if (t > animation.range[1]) {
+                deleteItemFromLoop(rangeFunction);
             }
         };
     } else {
         rangeFunction = (t) => {
-            if (t >= range[0]) {
+            if (t >= animation.range[0] && t <= animation.range[1]) {
                 animationFunction(t);
+            } else if (t > animation.range[1]) {
+                deleteItemFromLoop(rangeFunction);
             }
         };
     }
     return rangeFunction;
 }
 
-function oneTime(animationFunction, range, local) {
+function oneTime(animationFunction, animation, deleteItemFromLoop) {
     let rangeFunction;
-    if (local) {
+    if (animation.local) {
         rangeFunction = (t) => {
-            if (t >= range) {
-                animationFunction(t - range);
-                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+            if (t >= animation.range) {
+                animationFunction(t - animation.range);
+                deleteItemFromLoop(rangeFunction);
             }
         };
     } else {
         rangeFunction = (t) => {
-            if (t >= range) {
+            if (t >= animation.range) {
                 animationFunction(t);
-                animationLoop.splice(animationLoop.indexOf(rangeFunction), 1);
+                deleteItemFromLoop(rangeFunction);
             }
         };
     }
@@ -432,237 +534,262 @@ function oneTime(animationFunction, range, local) {
     return rangeFunction;
 }
 
-function applyRange$1(animationFunction, range, local) {
+function chooseRangeType(animationFunction, animation, deleteItemFromLoop) {
     let rangeFunction;
+    const { range } = animation;
     if (Array.isArray(range)) {
         if (range.length === 1) {
-            rangeFunction = infiniteEndpoint(animationFunction, range, local);
+            rangeFunction = infiniteEndpoint(animationFunction, animation);
         } else if (range.length === 2) {
-            rangeFunction = interval(animationFunction, range, local);
+            rangeFunction = interval(animationFunction, animation, deleteItemFromLoop);
         }
     } else if (isNumeric(range)) {
-        rangeFunction = oneTime(animationFunction, range, local);
+        rangeFunction = oneTime(animationFunction, animation, deleteItemFromLoop);
     }
     return rangeFunction;
 }
 
-const animationLoop = [];
-
-function applyRange(animationFunction, animation) {
-    if (animation.range) {
-        animationLoop.push(applyRange$1(animationFunction, animation.range, animation.local));
-    } else {
-        animationLoop.push(animationFunction);
-    }
-}
-
-function sort(key, animation, object) {
-    let animationFunction;
-    if (key === 'transform') {
-        animationFunction = chooseTransformMethod$1(object, animation);
-    }
-    applyRange(animationFunction, animation);
-}
-
-function separate(key, object) {
-    if (Array.isArray(object.animation[key])) {
-        object.animation[key].forEach((item) => {
-            sort(key, item, object);
-        });
-    } else {
-        sort(key, object.animation[key], object);
-    }
-}
-
-function prepare(objectsList) {
-    objectsList.forEach((object) => {
-        const keys = Object.keys(object.animation);
-        keys.forEach((key) => {
-            separate(key, object);
-        });
-    });
-}
-
-const objectList = new Set();
-
-function add(...objects) {
-    objects.forEach((object) => {
-        if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
-            objectList.add(object);
+function applyRange(animationList, deleteItemFromLoop) {
+    const loop = [];
+    animationList.forEach((element) => {
+        const [animationFunction, animation] = element;
+        if (animation.range) {
+            loop.push(chooseRangeType(animationFunction, animation, deleteItemFromLoop));
+        } else {
+            loop.push(animationFunction);
         }
     });
+    return loop;
 }
 
-function init() {
-    objectList.forEach((object) => {
-        object.setVariables();
-        object.initMatrix();
-        object.decomposeMatrix();
-        prepare(objectList);
-    });
-}
-
-function reset$1() {
-    objectList.forEach((object) => {
-        object.resetAttributes();
-        object.setVariables();
-        object.initMatrix();
-        object.decomposeMatrix();
-    });
-}
-
-function frame(time) {
-    for (let i = 0; i < animationLoop.length; i += 1) {
-        animationLoop[i](time);
-    }
-}
-
-let animationID = 0;
-let startTime = 0;
-let time = 0;
-
-function animate() {
-    function startLoop() {
-        time = Date.now() - startTime;
-        frame(time / 1000);
-        animationID = window.requestAnimationFrame(startLoop);
-    }
-    animationID = window.requestAnimationFrame(startLoop);
-}
-
-function start$3() {
-    startTime = Date.now();
-    animate();
-}
-
-function resume() {
-    startTime = Date.now() - time;
-    animate();
-}
-
-function pause() {
-    window.cancelAnimationFrame(animationID);
-}
-
-function refresh$1() {
-    window.cancelAnimationFrame(animationID);
-    startTime = 0;
-    time = 0;
-    reset$1();
-}
-
-let status = 'not started';
-
-function playStop() {
-    if (status === 'not started') {
-        status = 'playing';
-        switchRefreshOn();
-        switchToPause();
-        start$3();
-    } else if (status === 'playing') {
-        status = 'paused';
-        pause();
-        switchToPlay();
-    } else if (status === 'paused') {
-        status = 'playing';
-        resume();
-        switchToPause();
-    }
-}
-
-function reset() {
-    if (status === 'playing' || status === 'paused' || status === 'ended') {
-        status = 'not started';
-        switchRefreshOff();
-        refresh$1();
-        switchToPlay();
-    }
-}
-function start$2() {
-    button$1.addEventListener('click', playStop, false);
-    switchRefreshOff();
-    button.addEventListener('click', reset, false);
-}
-
-function getAttributes(object) {
-    const list = new Map();
-    const { attributes } = object;
-    for (let i = 0; i < attributes.length; i += 1) {
-        if (attributes[i].specified) {
-            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
-        }
-    }
-    return list;
-}
-
-function resetAttributes(object, attributes) {
-    // remove all attributes
-    while (object.attributes.length > 0) {
-        object.removeAttribute(object.attributes[0].name);
-    }
-    // set new attributes
-    attributes.forEach((value, key) => {
-        object.setAttribute(key, value);
-    });
-}
-
-function initMatrix(object) {
-    let matrix = null;
-    const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
-        svgTransform.consolidate();
-        ({ matrix } = svgTransform.getItem(0));
-    } else {
-        matrix = compiledSettings.svg.createSVGMatrix();
-    }
-    svgTransform.initialize(compiledSettings.svg.createSVGTransformFromMatrix(matrix));
-}
-
-function decomposeMatrix(m) {
-    const transform = {};
-    transform.translate = {
-        x: m.e,
-        y: m.f,
+function createMainObjectDispatcher() {
+    SVGAnimation.prototype.dispatcher = function dispatcher() {
+        // array of [key, animation, objecy] items
+        const propertiesToAnimateList = separate(this.objectList);
+        // array of [animationFunction, animation (equation. range etc...)]
+        const animationList = applyAnimation(propertiesToAnimateList);
+        // array of animationFunction with range applied
+        const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
+        this.loop = applyRange(animationList, deleteItemFromLoop);
     };
-    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
-    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
-
-    return transform;
 }
 
-class Obj {
-    constructor(item) {
-        this.item = item;
-    }
-    setVariables() {
-        this.variables = getAttributes(this.item);
-    }
-    initMatrix() {
-        initMatrix(this.item);
-        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
-        this.SVGTransform = this.item.transform.baseVal.getItem(0);
-    }
-    resetAttributes() {
-        resetAttributes(this.item, this.variables);
-    }
-    decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
-    }
-    setMatrix(matrix) {
-        this.SVGTransform.setMatrix(matrix);
-    }
+function createMainObjectHelpers() {
+    SVGAnimation.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
+        this.loop.splice(this.loop.indexOf(item), 1);
+        if (this.loop < 1) {
+            this.end();
+        }
+    };
 }
 
-function start(...objects) {
-    add(...objects);
-    compileSettings();
-    start$1();
-    start$2();
-    init();
+function createPlayPause(s, svg) {
+    const group = createElNS('g');
+    const playPause1 = createElNS('polygon');
+    const playPause2 = createElNS('polygon');
+
+    setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
+    setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+
+
+    group.appendChild(playPause1);
+    group.appendChild(playPause2);
+
+    // button
+    const button = createElNS('rect');
+    setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
+
+    // group button and icon
+
+    const playPauseGroup = createElNS('g');
+    playPauseGroup.appendChild(group);
+    playPauseGroup.appendChild(button);
+
+    // set button and icons to correct position at the bottom left of svg
+    function setPosition() {
+        const viewBox = svg.viewBox.baseVal;
+        const matrix = svg.createSVGMatrix();
+        matrix.e = viewBox.x + 25;
+        matrix.f = viewBox.y + (viewBox.height - 25);
+        playPauseGroup.transform.baseVal.initialize(svg.createSVGTransformFromMatrix(matrix));
+    }
+
+    function addUserSettings() {
+        // set color
+        setAttrs(group, ['fill', s.interfaceColor]);
+
+        // set interface size
+        const { matrix } = playPauseGroup.transform.baseVal.getItem(0);
+        matrix.a = s.interfaceSize;
+        matrix.d = s.interfaceSize;
+
+        // set interface position
+        if (s.interfacePosition !== 'auto') {
+            [matrix.e, matrix.f] = s.interfacePosition;
+        }
+
+        playPauseGroup.transform.baseVal.getItem(0).setMatrix(matrix);
+    }
+    setPosition();
+    addUserSettings();
+    svg.appendChild(playPauseGroup);
+
+    function switchToPause() {
+        setAttrs(playPause1, ['points', '-9,-10 -9,10 -2,10 -2,-10']);
+        setAttrs(playPause2, ['points', '2,-10 2,10 9,10 9,-10']);
+    }
+    function switchToPlay() {
+        setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
+        setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+    }
+    function switchPlayPauseOff() {
+        setAttrs(group, ['display', 'none']);
+    }
+    function switchPlayPauseOn() {
+        setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
+        setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+        setAttrs(group, ['display', 'block']);
+    }
+
+    return {
+        play: switchToPlay,
+        pause: switchToPause,
+        off: switchPlayPauseOff,
+        on: switchPlayPauseOn,
+        button,
+    };
 }
 
-exports.Obj = Obj;
-exports.start = start;
+function createRefresh(s, svg) {
+    // arrows
+    const marker = createElNS('marker');
+    marker.id = 'arrow';
+    setAttrs(marker, ['viewBox', '0 0 10 10'], ['refX', '1'], ['refY', '5'], ['markerWidth', '3'], ['markerHeight', '3'], ['orient', 'auto']);
+
+
+    // arrow path
+    const path = createElNS('path');
+    setAttrs(path, ['d', 'M 0 0 L 10 5 L 0 10 z']);
+    marker.appendChild(path);
+
+
+    // icons
+    const refresh = createElNS('g');
+    const arc1 = createElNS('path');
+    const arc2 = createElNS('path');
+    setAttrs(arc1, ['d', 'M-10 0 A 10 10 0 0 1 0 -10'], ['marker-end', 'url(#arrow)']);
+    setAttrs(arc2, ['d', 'M10 0 A 10 10 0 0 1 0 10'], ['marker-end', 'url(#arrow)']);
+    refresh.appendChild(arc1);
+    refresh.appendChild(arc2);
+    setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)']);
+
+
+    // button
+    const button = createElNS('rect');
+    setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
+
+    // group button and icon
+
+    const refreshGroup = createElNS('g');
+    refreshGroup.appendChild(refresh);
+    refreshGroup.appendChild(button);
+
+    // set button and icons to correct position at the bottom left of svg
+    function setPosition() {
+        const viewBox = svg.viewBox.baseVal;
+        const matrix = svg.createSVGMatrix();
+        matrix.e = viewBox.x + 25;
+        matrix.f = viewBox.y + (viewBox.height - 25);
+        refreshGroup.transform.baseVal.initialize(svg.createSVGTransformFromMatrix(matrix));
+    }
+
+    function addUserSettings() {
+    // set color
+        setAttrs(refresh, ['stroke', s.interfaceColor]);
+        setAttrs(marker, ['fill', s.interfaceColor]);
+
+        // set interface size
+        const { matrix } = refreshGroup.transform.baseVal.getItem(0);
+        matrix.a = s.interfaceSize;
+        matrix.d = s.interfaceSize;
+
+        // set interface position
+        if (s.interfacePosition !== 'auto') {
+            [matrix.e, matrix.f] = s.interfacePosition;
+        }
+
+        refreshGroup.transform.baseVal.getItem(0).setMatrix(matrix);
+    }
+    let defs = svg.getElementsByTagName('defs')[0];
+
+    // check for defs element in DOM, if not exist - add it
+    if (!defs) {
+        defs = createElNS('defs');
+        svg.insertBefore(defs, svg.firstChild);
+    }
+
+    setPosition();
+
+    addUserSettings();
+
+    // add button to DOM
+    defs.appendChild(marker);
+    svg.appendChild(refreshGroup);
+
+    function switchRefreshOff() {
+        setAttrs(refresh, ['display', 'none']);
+    }
+
+    function switchRefreshOn() {
+        setAttrs(refresh, ['display', 'block']);
+    }
+
+    return {
+        off: switchRefreshOff,
+        on: switchRefreshOn,
+        button,
+    };
+}
+
+function createInterfaceControler() {
+    SVGAnimation.prototype.interfaceControler = function interfaceControler() {
+        const playPause = createPlayPause(this.settings, this.svg);
+        const refresh = createRefresh(this.settings, this.svg);
+        refresh.off();
+
+        const that = this;
+
+        function controlPlayPause() {
+            if (that.status === 'not started' || that.status === 'paused') {
+                that.play();
+            } else if (that.status === 'playing') {
+                that.pause();
+            }
+        }
+
+        function controlRefresh() {
+            if (that.status === 'playing' || that.status === 'paused' || that.status === 'ended') {
+                that.refresh();
+            }
+        }
+        playPause.button.addEventListener('click', controlPlayPause, false);
+        refresh.button.addEventListener('click', controlRefresh, false);
+
+        return {
+            playPause,
+            refresh,
+        };
+    };
+}
+
+createPlayer();
+createDrawFunction();
+createMainObjectDispatcher();
+createMainObjectHelpers();
+createInterfaceControler();
+
+exports.Obj = animatedObject;
+exports.Create = SVGAnimation;
 
 return exports;
 

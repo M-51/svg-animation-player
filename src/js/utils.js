@@ -23,4 +23,15 @@ function setAttrs(element, ...attributtes) {
     });
 }
 
-export { undef, createElNS, setAttrs, isNumeric };
+function findSVGParent(element) {
+    let el = element;
+    while (el.tagName) {
+        if (el.tagName.toLowerCase() === 'svg') {
+            return el;
+        }
+        el = el.parentNode;
+    }
+    throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
+}
+
+export { undef, createElNS, setAttrs, isNumeric, findSVGParent };

@@ -1,23 +1,25 @@
 import { undef } from './utils';
 
 const defaultSettings = {
-    svg: document.querySelector('svg'),
     showInterface: true,
     interfaceAnimation: true,
     interfaceSize: 1,
     interfaceColor: '#000',
     interfacePosition: 'auto',
+    restartAtTheEnd: false,
 };
-const compiledSettings = {};
 
-function compileSettings() {
+
+function compileSettings(settings) {
+    const compiledSettings = {};
     Object.keys(defaultSettings).forEach((rule) => {
-        if (!undef(svganimation.settings) && !undef(svganimation.settings[rule])) {
-            compiledSettings[rule] = svganimation.settings[rule];
+        if (!undef(settings) && !undef(settings[rule])) {
+            compiledSettings[rule] = settings[rule];
         } else {
             compiledSettings[rule] = defaultSettings[rule];
         }
     });
+    return compiledSettings;
 }
 
-export { compileSettings, compiledSettings };
+export default compileSettings;
