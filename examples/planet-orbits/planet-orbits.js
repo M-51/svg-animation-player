@@ -14,8 +14,4 @@ test.animation = {
 
 const dupa = new svganimation.Create();
 
-dupa.settings = {
-    showInterface: false,
-};
-
 dupa.init(test);

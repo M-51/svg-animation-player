@@ -38,6 +38,10 @@ class SVGAnimation {
         });
 
         this.dispatcher();
+
+        if (this.settings.showInterface) {
+            this.interfaceControler = this.interfaceControler();
+        }
     }
     reset() {
         this.objectList.forEach((object) => {
