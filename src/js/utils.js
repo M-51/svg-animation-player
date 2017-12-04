@@ -23,8 +23,8 @@ function setAttrs(element, ...attributtes) {
     });
 }
 
-function findSVGParent(element) {
-    let el = element;
+function findSVGParent(list) {
+    let el = list.values().next().value.item;
     while (el.tagName) {
         if (el.tagName.toLowerCase() === 'svg') {
             return el;

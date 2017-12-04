@@ -12,7 +12,7 @@ async function bundle() {
     await a.write({
         file: './dist/js/svganimation.js',
         format: 'iife',
-        name: 'svganimation',
+        name: 'SVGAnimation',
         sourcemap: true,
     });
 }

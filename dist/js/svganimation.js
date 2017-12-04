@@ -1,5 +1,62 @@
-var svganimation = (function (exports) {
+var SVGAnimation = (function () {
 'use strict';
+
+// check if argument is undefined
+function undef(item) {
+    return (typeof item === 'undefined');
+}
+
+// check if expresion is a number
+function isNumeric(number) {
+    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
+}
+
+// create element NS
+// accepts element name as paramater
+function createElNS(name) {
+    return document.createElementNS('http://www.w3.org/2000/svg', name);
+}
+
+// set multiple attributtes NS
+// setAttrs(element, [name, value], [name2,value2]...)
+function setAttrs(element, ...attributtes) {
+    attributtes.forEach((attributte) => {
+        element.setAttributeNS(null, attributte[0], attributte[1]);
+    });
+}
+
+function findSVGParent(list) {
+    let el = list.values().next().value.item;
+    while (el.tagName) {
+        if (el.tagName.toLowerCase() === 'svg') {
+            return el;
+        }
+        el = el.parentNode;
+    }
+    throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
+}
+
+const defaultSettings = {
+    showInterface: true,
+    interfaceAnimation: true,
+    interfaceSize: 1,
+    interfaceColor: '#000',
+    interfacePosition: 'auto',
+    restartAtTheEnd: false,
+};
+
+
+function compileSettings(settings) {
+    const compiledSettings = {};
+    Object.keys(defaultSettings).forEach((rule) => {
+        if (!undef(settings) && !undef(settings[rule])) {
+            compiledSettings[rule] = settings[rule];
+        } else {
+            compiledSettings[rule] = defaultSettings[rule];
+        }
+    });
+    return compiledSettings;
+}
 
 function getAttributes(object) {
     const list = new Map();
@@ -47,7 +104,7 @@ function decomposeMatrix(m) {
     return transform;
 }
 
-class animatedObject {
+class AnimatedObject {
     constructor(item) {
         this.item = item;
     }
@@ -73,88 +130,42 @@ class animatedObject {
     }
 }
 
-// check if argument is undefined
-function undef(item) {
-    return (typeof item === 'undefined');
-}
-
-// check if expresion is a number
-function isNumeric(number) {
-    return !Number.isNaN(parseFloat(number)) && Number.isFinite(number);
-}
-
-// create element NS
-// accepts element name as paramater
-function createElNS(name) {
-    return document.createElementNS('http://www.w3.org/2000/svg', name);
-}
-
-// set multiple attributtes NS
-// setAttrs(element, [name, value], [name2,value2]...)
-function setAttrs(element, ...attributtes) {
-    attributtes.forEach((attributte) => {
-        element.setAttributeNS(null, attributte[0], attributte[1]);
-    });
-}
-
-function findSVGParent(element) {
-    let el = element;
-    while (el.tagName) {
-        if (el.tagName.toLowerCase() === 'svg') {
-            return el;
-        }
-        el = el.parentNode;
-    }
-    throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
-}
-
-const defaultSettings = {
-    showInterface: true,
-    interfaceAnimation: true,
-    interfaceSize: 1,
-    interfaceColor: '#000',
-    interfacePosition: 'auto',
-    restartAtTheEnd: false,
-};
-
-
-function compileSettings(settings) {
-    const compiledSettings = {};
-    Object.keys(defaultSettings).forEach((rule) => {
-        if (!undef(settings) && !undef(settings[rule])) {
-            compiledSettings[rule] = settings[rule];
-        } else {
-            compiledSettings[rule] = defaultSettings[rule];
-        }
-    });
-    return compiledSettings;
-}
-
-class SVGAnimation {
-    constructor() {
+class SVGAnimation$1 {
+    constructor(settings) {
         this.status = 'not started';
         this.timer = {
             animationId: 0,
             startTime: 0,
             time: 0,
         };
-    }
-    init(...objects) {
-        // check if objects exist
-        if (objects.length === 0) { throw new Error('No objects to animate. Add objects to "init" function'); }
-        // add all animated objects to "objectList" set
+        this.settings = compileSettings(settings);
         this.objectList = new Set();
+    }
+    add(...objects) {
         objects.forEach((object) => {
-            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
-                this.objectList.add(object);
+            if (!Object.prototype.hasOwnProperty.call(object, 'object')) {
+                throw new Error(`Object ${object} must have "object" property. which is query selector or actual DOM object`);
             }
+            const DOMObject = typeof object.object === 'string' ? document.querySelector(object.object) : object.object;
+            if (!document.contains(DOMObject)) {
+                throw new Error(`Cannot find ${typeof object.object === 'string' ? `DOM element that match "${object.object}" query selector` : `${object.object} in DOM`}`);
+            }
+            const tempObject = new AnimatedObject(DOMObject);
+
+            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+                tempObject.animation = object.animation;
+            } else {
+                throw new Error(`Object ${object} must have "animation" property`);
+            }
+            this.objectList.add(tempObject);
+            // }
         });
+    }
+    init() {
         // check if objectList is not empty
-        if (this.objectList.size === 0) { throw new Error('No objects to animate. At least one object must have "animate" property'); }
+        if (this.objectList.size === 0) { throw new Error('No objects to animate. Add at least one object with "animate" property'); }
         // find svg element
-        this.svg = findSVGParent(objects[0].item);
-        // compile user settings
-        this.settings = compileSettings(this.settings);
+        this.svg = findSVGParent(this.objectList);
 
         // initialize all animated objects
         this.objectList.forEach((object) => {
@@ -184,7 +195,7 @@ class SVGAnimation {
 }
 
 function createPlayer() {
-    SVGAnimation.prototype.play = function play() {
+    SVGAnimation$1.prototype.play = function play() {
         const that = this;
         function startLoop() {
             that.timer.time = Date.now() - that.timer.startTime;
@@ -209,7 +220,7 @@ function createPlayer() {
         }
     };
 
-    SVGAnimation.prototype.pause = function pause() {
+    SVGAnimation$1.prototype.pause = function pause() {
         if (this.status === 'playing') {
             this.status = 'paused';
             window.cancelAnimationFrame(this.timer.animationId);
@@ -219,7 +230,7 @@ function createPlayer() {
         }
     };
 
-    SVGAnimation.prototype.refresh = function refresh() {
+    SVGAnimation$1.prototype.refresh = function refresh() {
         if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
             this.status = 'not started';
             window.cancelAnimationFrame(this.timer.animationId);
@@ -234,7 +245,7 @@ function createPlayer() {
             this.reset();
         }
     };
-    SVGAnimation.prototype.end = function end() {
+    SVGAnimation$1.prototype.end = function end() {
         if (this.status === 'playing' || this.status === 'paused') {
             this.status = 'ended';
             const that = this;
@@ -252,7 +263,7 @@ function createPlayer() {
 }
 
 function createDrawFunction() {
-    SVGAnimation.prototype.frame = function frame(time) {
+    SVGAnimation$1.prototype.frame = function frame(time) {
         for (let i = 0; i < this.loop.length; i += 1) {
             this.loop[i](time);
         }
@@ -563,7 +574,7 @@ function applyRange(animationList, deleteItemFromLoop) {
 }
 
 function createMainObjectDispatcher() {
-    SVGAnimation.prototype.dispatcher = function dispatcher() {
+    SVGAnimation$1.prototype.dispatcher = function dispatcher() {
         // array of [key, animation, objecy] items
         const propertiesToAnimateList = separate(this.objectList);
         // array of [animationFunction, animation (equation. range etc...)]
@@ -575,7 +586,7 @@ function createMainObjectDispatcher() {
 }
 
 function createMainObjectHelpers() {
-    SVGAnimation.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
+    SVGAnimation$1.prototype.deleteItemFromLoop = function deleteItemFromLoop(item) {
         this.loop.splice(this.loop.indexOf(item), 1);
         if (this.loop < 1) {
             this.end();
@@ -752,7 +763,7 @@ function createRefresh(s, svg) {
 }
 
 function createInterfaceControler() {
-    SVGAnimation.prototype.interfaceControler = function interfaceControler() {
+    SVGAnimation$1.prototype.interfaceControler = function interfaceControler() {
         const playPause = createPlayPause(this.settings, this.svg);
         const refresh = createRefresh(this.settings, this.svg);
         refresh.off();
@@ -782,16 +793,14 @@ function createInterfaceControler() {
     };
 }
 
+// import animatedObject from './animated-object/constructor'; // Objects to animate
 createPlayer();
 createDrawFunction();
 createMainObjectDispatcher();
 createMainObjectHelpers();
 createInterfaceControler();
 
-exports.Obj = animatedObject;
-exports.Create = SVGAnimation;
+return SVGAnimation$1;
 
-return exports;
-
-}({}));
+}());
 //# sourceMappingURL=svganimation.js.map
