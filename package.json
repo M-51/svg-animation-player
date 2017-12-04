@@ -1,6 +1,6 @@
 {
   "name": "svg-animation",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Library that helps animating svg objects",
   "main": "./src/js/index.js",
   "directories": {
