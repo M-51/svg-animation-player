@@ -1,4 +1,4 @@
-import animatedObject from './animated-object/constructor'; // Objects to animate
+// import animatedObject from './animated-object/constructor'; // Objects to animate
 import SVGAnimation from './main-object/constructor'; // SVGanimation objects
 
 import createPlayer from './main-object/player';
@@ -13,4 +13,4 @@ createMainObjectDispatcher();
 createMainObjectHelpers();
 createInterfaceControler();
 
-export { animatedObject as Obj, SVGAnimation as Create };
+export default SVGAnimation;

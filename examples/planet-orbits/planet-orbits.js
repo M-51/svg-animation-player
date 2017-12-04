@@ -1,17 +1,27 @@
+const s = new SVGAnimation();
 
-const circle = new svganimation.Obj(document.getElementById('test'));
-circle.animation = {
-    transform: {
-        translate: {
-            x: t => 100 * Math.cos(5 * t),
-            y: t => 100 * Math.sin(5 * t),
+s.add({
+    object: '#test',
+    animation: {
+        transform: {
+            translate: {
+                x: t => 100 * Math.cos(5 * t),
+                y: t => 100 * Math.sin(5 * t),
+            },
         },
     },
-    r: {
-        value: t => 20 + (5 * Math.sin(t)),
+}, {
+    object: '#test2',
+    animation: {
+        transform: {
+            local: true,
+            range: [1],
+            translate: {
+                x: t => 100 * Math.cos(5 * t),
+                y: t => 100 * Math.sin(5 * t),
+            },
+        },
     },
-};
+});
 
-const animation1 = new svganimation.Create();
-
-animation1.init(circle);
+s.init();
