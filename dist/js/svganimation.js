@@ -25,8 +25,8 @@ function setAttrs(element, ...attributtes) {
     });
 }
 
-function findSVGParent(list) {
-    let el = list.values().next().value.item;
+function findSVGParent(element) {
+    let el = element.item;
     while (el.tagName) {
         if (el.tagName.toLowerCase() === 'svg') {
             return el;
@@ -58,78 +58,6 @@ function compileSettings(settings) {
     return compiledSettings;
 }
 
-function getAttributes(object) {
-    const list = new Map();
-    const { attributes } = object;
-    for (let i = 0; i < attributes.length; i += 1) {
-        if (attributes[i].specified) {
-            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
-        }
-    }
-    return list;
-}
-
-function resetAttributes(object, attributes) {
-    // remove all attributes
-    while (object.attributes.length > 0) {
-        object.removeAttribute(object.attributes[0].name);
-    }
-    // set new attributes
-    attributes.forEach((value, key) => {
-        object.setAttribute(key, value);
-    });
-}
-
-function initMatrix(object, svg) {
-    let matrix = null;
-    const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
-        svgTransform.consolidate();
-        ({ matrix } = svgTransform.getItem(0));
-    } else {
-        matrix = svg.createSVGMatrix();
-    }
-    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
-}
-
-function decomposeMatrix(m) {
-    const transform = {};
-    transform.translate = {
-        x: m.e,
-        y: m.f,
-    };
-    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
-    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
-
-    return transform;
-}
-
-class AnimatedObject {
-    constructor(item) {
-        this.item = item;
-    }
-    setVariables() {
-        this.variables = getAttributes(this.item);
-    }
-    initMatrix(settings) {
-        initMatrix(this.item, settings);
-        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
-        this.SVGTransform = this.item.transform.baseVal.getItem(0);
-    }
-    resetAttributes() {
-        resetAttributes(this.item, this.variables);
-    }
-    decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
-    }
-    setMatrix(matrix) {
-        this.SVGTransform.setMatrix(matrix);
-    }
-    setAttribute(name, value) {
-        this.item.setAttributeNS(null, name, value);
-    }
-}
-
 class SVGAnimation$1 {
     constructor(settings) {
         this.status = 'not started';
@@ -140,48 +68,7 @@ class SVGAnimation$1 {
         };
         this.settings = compileSettings(settings);
         this.objectList = new Set();
-    }
-    add(...objects) {
-        objects.forEach((object) => {
-            if (!Object.prototype.hasOwnProperty.call(object, 'object')) {
-                throw new Error(`Object ${object} must have "object" property. which is query selector or actual DOM object`);
-            }
-            const DOMObject = typeof object.object === 'string' ? document.querySelector(object.object) : object.object;
-            if (!document.contains(DOMObject)) {
-                throw new Error(`Cannot find ${typeof object.object === 'string' ? `DOM element that match "${object.object}" query selector` : `${object.object} in DOM`}`);
-            }
-            const tempObject = new AnimatedObject(DOMObject);
-
-            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
-                tempObject.animation = object.animation;
-            } else {
-                throw new Error(`Object ${object} must have "animation" property`);
-            }
-            this.objectList.add(tempObject);
-            // }
-        });
-    }
-    init() {
-        // check if objectList is not empty
-        if (this.objectList.size === 0) { throw new Error('No objects to animate. Add at least one object with "animate" property'); }
-        // find svg element
-        this.svg = findSVGParent(this.objectList);
-
-        // initialize all animated objects
-        this.objectList.forEach((object) => {
-            // remember starting attributtes
-            object.setVariables();
-            // initialize transformation matrix
-            object.initMatrix(this.svg);
-            // decompose initial matrix
-            object.decomposeMatrix();
-        });
-
-        this.dispatcher();
-
-        if (this.settings.showInterface) {
-            this.interfaceControler = this.interfaceControler();
-        }
+        this.loop = [];
     }
     reset() {
         this.objectList.forEach((object) => {
@@ -190,7 +77,8 @@ class SVGAnimation$1 {
             object.initMatrix(this.svg);
             object.decomposeMatrix();
         });
-        this.dispatcher();
+        this.loop = [];
+        this.dispatcher(this.objectList);
     }
 }
 
@@ -463,9 +351,9 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-function applyAttributeAnimation$1(object, key) {
+function applyAttributeAnimation$1(object, key, animation) {
     const animationFunction = (time) => {
-        const { value } = object.animation[key];
+        const { value } = animation;
         object.setAttribute(key, value(time));
     };
     return animationFunction;
@@ -478,7 +366,7 @@ function applyAnimation(propertiesToAnimateList) {
         if (key === 'transform') {
             animationList.push([chooseTransformMethod$1(object, animation), animation]);
         } else {
-            animationList.push([applyAttributeAnimation$1(object, key), animation]);
+            animationList.push([applyAttributeAnimation$1(object, key, animation), animation]);
         }
     });
     return animationList;
@@ -574,14 +462,14 @@ function applyRange(animationList, deleteItemFromLoop) {
 }
 
 function createMainObjectDispatcher() {
-    SVGAnimation$1.prototype.dispatcher = function dispatcher() {
+    SVGAnimation$1.prototype.dispatcher = function dispatcher(objectList) {
         // array of [key, animation, objecy] items
-        const propertiesToAnimateList = separate(this.objectList);
+        const propertiesToAnimateList = separate(objectList);
         // array of [animationFunction, animation (equation. range etc...)]
         const animationList = applyAnimation(propertiesToAnimateList);
         // array of animationFunction with range applied
         const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
-        this.loop = applyRange(animationList, deleteItemFromLoop);
+        this.loop.push(...applyRange(animationList, deleteItemFromLoop));
     };
 }
 
@@ -793,12 +681,126 @@ function createInterfaceControler() {
     };
 }
 
-// import animatedObject from './animated-object/constructor'; // Objects to animate
+function getAttributes(object) {
+    const list = new Map();
+    const { attributes } = object;
+    for (let i = 0; i < attributes.length; i += 1) {
+        if (attributes[i].specified) {
+            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+        }
+    }
+    return list;
+}
+
+function resetAttributes(object, attributes) {
+    // remove all attributes
+    while (object.attributes.length > 0) {
+        object.removeAttribute(object.attributes[0].name);
+    }
+    // set new attributes
+    attributes.forEach((value, key) => {
+        object.setAttribute(key, value);
+    });
+}
+
+function initMatrix(object, svg) {
+    let matrix = null;
+    const svgTransform = object.transform.baseVal;
+    if (svgTransform.length) {
+        svgTransform.consolidate();
+        ({ matrix } = svgTransform.getItem(0));
+    } else {
+        matrix = svg.createSVGMatrix();
+    }
+    svgTransform.initialize(svg.createSVGTransformFromMatrix(matrix));
+}
+
+function decomposeMatrix(m) {
+    const transform = {};
+    transform.translate = {
+        x: m.e,
+        y: m.f,
+    };
+    transform.scale = Math.sign(m.a) * Math.sqrt((m.a * m.a) + (m.c * m.c));
+    transform.rotate = Math.atan2(-m.c, m.a) * (180 / Math.PI);
+
+    return transform;
+}
+
+class AnimatedObject {
+    constructor(item) {
+        this.item = item;
+    }
+    setVariables() {
+        this.variables = getAttributes(this.item);
+    }
+    initMatrix(settings) {
+        initMatrix(this.item, settings);
+        this.matrix = this.item.transform.baseVal.getItem(0).matrix;
+        this.SVGTransform = this.item.transform.baseVal.getItem(0);
+    }
+    resetAttributes() {
+        resetAttributes(this.item, this.variables);
+    }
+    decomposeMatrix() {
+        this.transform = decomposeMatrix(this.matrix);
+    }
+    setMatrix(matrix) {
+        this.SVGTransform.setMatrix(matrix);
+    }
+    setAttribute(name, value) {
+        this.item.setAttributeNS(null, name, value);
+    }
+}
+
+function createMainObjectAddFunction() {
+    SVGAnimation$1.prototype.add = function add(...objects) {
+        const tempObjectList = new Set();
+        objects.forEach((object) => {
+            // check if object has "object property"
+            if (!Object.prototype.hasOwnProperty.call(object, 'object')) {
+                throw new Error(`Object ${object} must have "object" property. which is query selector or actual DOM object`);
+            }
+            // declare DOM object based on user input
+            const DOMObject = typeof object.object === 'string' ? document.querySelector(object.object) : object.object;
+            // check DOM object exsist
+            if (!document.contains(DOMObject)) {
+                throw new Error(`Cannot find ${typeof object.object === 'string' ? `DOM element that match "${object.object}" query selector` : `${object.object} in DOM`}`);
+            }
+            // create animated object
+            const tempObject = new AnimatedObject(DOMObject);
+
+            if (Object.prototype.hasOwnProperty.call(object, 'animation')) {
+                tempObject.animation = object.animation;
+            } else {
+                throw new Error(`Object ${object} must have "animation" property`);
+            }
+            // find SVG parent
+            if (!this.svg) {
+                this.svg = findSVGParent(tempObject);
+            }
+            tempObjectList.add(tempObject);
+            tempObject.setVariables();
+            // initialize transformation matrix
+            tempObject.initMatrix(this.svg);
+            // decompose initial matrix
+            tempObject.decomposeMatrix();
+            this.objectList.add(tempObject);
+        });
+        // enable interface if needed
+        if (typeof this.interfaceControler === 'function' && this.settings.showInterface) {
+            this.interfaceControler = this.interfaceControler();
+        }
+        this.dispatcher(tempObjectList);
+    };
+}
+
 createPlayer();
 createDrawFunction();
 createMainObjectDispatcher();
 createMainObjectHelpers();
 createInterfaceControler();
+createMainObjectAddFunction();
 
 return SVGAnimation$1;
 

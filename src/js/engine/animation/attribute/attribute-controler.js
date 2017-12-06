@@ -1,6 +1,6 @@
-function applyAttributeAnimation(object, key) {
+function applyAttributeAnimation(object, key, animation) {
     const animationFunction = (time) => {
-        const { value } = object.animation[key];
+        const { value } = animation;
         object.setAttribute(key, value(time));
     };
     return animationFunction;

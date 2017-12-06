@@ -4,14 +4,14 @@ import applyAnimation from '../engine/animation/apply-animation';
 import applyRange from '../engine/range/apply-range';
 
 function createMainObjectDispatcher() {
-    SVGAnimation.prototype.dispatcher = function dispatcher() {
+    SVGAnimation.prototype.dispatcher = function dispatcher(objectList) {
         // array of [key, animation, objecy] items
-        const propertiesToAnimateList = separate(this.objectList);
+        const propertiesToAnimateList = separate(objectList);
         // array of [animationFunction, animation (equation. range etc...)]
         const animationList = applyAnimation(propertiesToAnimateList);
         // array of animationFunction with range applied
         const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
-        this.loop = applyRange(animationList, deleteItemFromLoop);
+        this.loop.push(...applyRange(animationList, deleteItemFromLoop));
     };
 }
 
