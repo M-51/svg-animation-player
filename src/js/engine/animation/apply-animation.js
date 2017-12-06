@@ -8,7 +8,7 @@ function applyAnimation(propertiesToAnimateList) {
         if (key === 'transform') {
             animationList.push([transformControler(object, animation), animation]);
         } else {
-            animationList.push([attributeControler(object, key), animation]);
+            animationList.push([attributeControler(object, key, animation), animation]);
         }
     });
     return animationList;

@@ -3,25 +3,19 @@ const s = new SVGAnimation();
 s.add({
     object: '#test',
     animation: {
-        transform: {
+        transform: [{
+            range: [0, 1],
             translate: {
-                x: t => 100 * Math.cos(5 * t),
-                y: t => 100 * Math.sin(5 * t),
+                x: t => 100 + (100 * t),
+                y: () => 0,
             },
-        },
-    },
-}, {
-    object: '#test2',
-    animation: {
-        transform: {
+        }, {
+            range: [1, 3],
             local: true,
-            range: [1],
             translate: {
-                x: t => 100 * Math.cos(5 * t),
-                y: t => 100 * Math.sin(5 * t),
+                x: t => 200 - (100 * t),
+                y: () => 0,
             },
-        },
+        }],
     },
 });
-
-s.init();
