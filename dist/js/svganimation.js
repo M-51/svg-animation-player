@@ -278,7 +278,7 @@ function translateScaleRotate(matrix, x, y, s, angle) {
     return modifiedMatrix;
 }
 
-function chooseTransformMethod$1(object, transform) {
+function chooseTransformMethod(object, transform) {
     // shortcuts
     const v = object.transform; // current position/scale/rotation object
     const t = v.translate; // current translation
@@ -351,7 +351,7 @@ function chooseTransformMethod$1(object, transform) {
     return animationFunc;
 }
 
-function applyAttributeAnimation$1(object, key, animation) {
+function applyAttributeAnimation(object, key, animation) {
     const animationFunction = (time) => {
         const { value } = animation;
         object.setAttribute(key, value(time));
@@ -364,9 +364,9 @@ function applyAnimation(propertiesToAnimateList) {
     propertiesToAnimateList.forEach((element) => {
         const [key, animation, object] = element;
         if (key === 'transform') {
-            animationList.push([chooseTransformMethod$1(object, animation), animation]);
+            animationList.push([chooseTransformMethod(object, animation), animation]);
         } else {
-            animationList.push([applyAttributeAnimation$1(object, key, animation), animation]);
+            animationList.push([applyAttributeAnimation(object, key, animation), animation]);
         }
     });
     return animationList;
