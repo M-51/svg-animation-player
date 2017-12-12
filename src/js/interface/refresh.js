@@ -17,8 +17,8 @@ function createRefresh(s, svg) {
     const refresh = createElNS('g');
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
-    setAttrs(arc1, ['d', 'M-10 0 A 10 10 0 0 1 0 -10'], ['marker-end', 'url(#arrow)']);
-    setAttrs(arc2, ['d', 'M10 0 A 10 10 0 0 1 0 10'], ['marker-end', 'url(#arrow)']);
+    setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', 'url(#arrow)']);
+    setAttrs(arc2, ['d', 'M20 -10 a 10 10, 90 0 1 -10 10'], ['marker-end', 'url(#arrow)']);
     refresh.appendChild(arc1);
     refresh.appendChild(arc2);
     setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)']);
@@ -26,7 +26,7 @@ function createRefresh(s, svg) {
 
     // button
     const button = createElNS('rect');
-    setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
+    setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
 
     // group button and icon
 
@@ -38,8 +38,11 @@ function createRefresh(s, svg) {
     function setPosition() {
         const viewBox = svg.viewBox.baseVal;
         const matrix = svg.createSVGMatrix();
-        matrix.e = viewBox.x + 25;
-        matrix.f = viewBox.y + (viewBox.height - 25);
+        matrix.e = viewBox.x + (viewBox.width * 0.05);
+        matrix.f = viewBox.y + (viewBox.height * 0.95);
+        const interfaceSize = viewBox.height / 400;
+        matrix.a = interfaceSize;
+        matrix.d = interfaceSize;
         refreshGroup.transform.baseVal.initialize(svg.createSVGTransformFromMatrix(matrix));
     }
 
@@ -47,11 +50,10 @@ function createRefresh(s, svg) {
     // set color
         setAttrs(refresh, ['stroke', s.interfaceColor]);
         setAttrs(marker, ['fill', s.interfaceColor]);
-
         // set interface size
         const { matrix } = refreshGroup.transform.baseVal.getItem(0);
-        matrix.a = s.interfaceSize;
-        matrix.d = s.interfaceSize;
+        matrix.a *= s.interfaceSize;
+        matrix.d *= s.interfaceSize;
 
         // set interface position
         if (s.interfacePosition !== 'auto') {
