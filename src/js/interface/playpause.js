@@ -5,8 +5,8 @@ function createPlayPause(s, svg) {
     const playPause1 = createElNS('polygon');
     const playPause2 = createElNS('polygon');
 
-    setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
-    setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+    setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
+    setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
 
 
     group.appendChild(playPause1);
@@ -14,7 +14,7 @@ function createPlayPause(s, svg) {
 
     // button
     const button = createElNS('rect');
-    setAttrs(button, ['x', '-10'], ['y', '-10'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
+    setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
 
     // group button and icon
 
@@ -26,8 +26,11 @@ function createPlayPause(s, svg) {
     function setPosition() {
         const viewBox = svg.viewBox.baseVal;
         const matrix = svg.createSVGMatrix();
-        matrix.e = viewBox.x + 25;
-        matrix.f = viewBox.y + (viewBox.height - 25);
+        matrix.e = viewBox.x + (viewBox.width * 0.05);
+        matrix.f = viewBox.y + (viewBox.height * 0.95);
+        const interfaceSize = viewBox.height / 400;
+        matrix.a = interfaceSize;
+        matrix.d = interfaceSize;
         playPauseGroup.transform.baseVal.initialize(svg.createSVGTransformFromMatrix(matrix));
     }
 
@@ -37,8 +40,9 @@ function createPlayPause(s, svg) {
 
         // set interface size
         const { matrix } = playPauseGroup.transform.baseVal.getItem(0);
-        matrix.a = s.interfaceSize;
-        matrix.d = s.interfaceSize;
+        matrix.a *= s.interfaceSize;
+        matrix.d *= s.interfaceSize;
+
 
         // set interface position
         if (s.interfacePosition !== 'auto') {
@@ -52,19 +56,19 @@ function createPlayPause(s, svg) {
     svg.appendChild(playPauseGroup);
 
     function switchToPause() {
-        setAttrs(playPause1, ['points', '-9,-10 -9,10 -2,10 -2,-10']);
-        setAttrs(playPause2, ['points', '2,-10 2,10 9,10 9,-10']);
+        setAttrs(playPause1, ['points', '1,0 1,-20 9,-20 9,0']);
+        setAttrs(playPause2, ['points', '11,0 11,-20 19,-20 19,0']);
     }
     function switchToPlay() {
-        setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
-        setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+        setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
+        setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
     }
     function switchPlayPauseOff() {
         setAttrs(group, ['display', 'none']);
     }
     function switchPlayPauseOn() {
-        setAttrs(playPause1, ['points', '-10,-10 -10,10 0,-5 0,5']);
-        setAttrs(playPause2, ['points', '-10,-10 -10,10 10,0 10,0']);
+        setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
+        setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
         setAttrs(group, ['display', 'block']);
     }
 
