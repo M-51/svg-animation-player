@@ -1,6 +1,6 @@
 {
   "name": "svg-animation",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Library for animating SVGs object with equations of time",
   "main": "./src/js/index.js",
   "directories": {
