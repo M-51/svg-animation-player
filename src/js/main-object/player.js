@@ -38,14 +38,18 @@ function createPlayer() {
 
     SVGAnimation.prototype.refresh = function refresh() {
         if (this.status === 'playing' || this.status === 'paused' || this.status === 'ended') {
+            if (this.settings.showInterface) {
+                if (this.status === 'playing') {
+                    this.interfaceControler.playPause.play();
+                } else if (this.status === 'ended') {
+                    this.interfaceControler.playPause.on();
+                }
+                this.interfaceControler.refresh.off();
+            }
             this.status = 'not started';
             window.cancelAnimationFrame(this.timer.animationId);
             this.timer.startTime = 0;
             this.timer.time = 0;
-            if (this.settings.showInterface) {
-                this.interfaceControler.playPause.on();
-                this.interfaceControler.refresh.off();
-            }
 
             // reset all animated object to starting attributtes
             this.reset();

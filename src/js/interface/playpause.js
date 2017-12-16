@@ -56,20 +56,79 @@ function createPlayPause(s, svg) {
     svg.appendChild(playPauseGroup);
 
     function switchToPause() {
-        setAttrs(playPause1, ['points', '1,0 1,-20 9,-20 9,0']);
-        setAttrs(playPause2, ['points', '11,0 11,-20 19,-20 19,0']);
+        let steps = 1;
+        if (!s.interfaceAnimation) {
+            steps = 10;
+        }
+        function animate() {
+            if (steps <= 10) {
+                playPause1.setAttribute('points', `${steps / 10},0 ${steps / 10},-20 ${10 - (steps / 10)},${-15 - (steps / 2)} ${10 - (steps / 10)},${-5 + (steps / 2)}`);
+                playPause2.setAttribute('points', `${10 + (steps / 10)},${-5 + (steps / 2)} ${10 + (steps / 10)},${-15 - (steps / 2)} ${20 - (steps / 10)},${-10 - steps} ${20 - (steps / 10)},${-10 + steps}`);
+                steps += 1;
+                window.requestAnimationFrame(animate);
+            }
+        }
+        animate();
+        // setAttrs(playPause1, ['points', '1,0 1,-20 9,-20 9,0']);
+        // setAttrs(playPause2, ['points', '11,0 11,-20 19,-20 19,0']);
     }
     function switchToPlay() {
-        setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
-        setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
+        let steps = 10;
+        if (!s.interfaceAnimation) {
+            steps = 1;
+        }
+        function animate() {
+            if (steps >= 0) {
+                playPause1.setAttribute('points', `${steps / 10},0 ${steps / 10},-20 ${10 - (steps / 10)},${-15 - (steps / 2)} ${10 - (steps / 10)},${-5 + (steps / 2)}`);
+                playPause2.setAttribute('points', `${10 + (steps / 10)},${-5 + (steps / 2)} ${10 + (steps / 10)},${-15 - (steps / 2)} ${20 - (steps / 10)},${-10 - steps} ${20 - (steps / 10)},${-10 + steps}`);
+                steps -= 1;
+                window.requestAnimationFrame(animate);
+            } else {
+                playPause1.setAttribute('points', '0,0 0,-20 20,-10 20,-10');
+                playPause2.setAttribute('points', '0,0 0,-20 20,-10 20,-10');
+            }
+        }
+        animate();
+        // setAttrs(playPause1, ['points', '0,0 0,-20 10,-15 10,-5']);
+        // setAttrs(playPause2, ['points', '10,-5 10,-15 20,-10 20,-10']);
     }
     function switchPlayPauseOff() {
-        setAttrs(group, ['display', 'none']);
+        let steps = 1;
+        if (!s.interfaceAnimation) {
+            steps = 10;
+        }
+        function animate() {
+            if (steps <= 10) {
+                playPause1.setAttribute('points', `1,${-steps} 1,${-20 + steps} 9,${-20 + steps} 9,${-steps}`);
+                playPause2.setAttribute('points', `11,${-steps} 11,${-20 + steps} 19,${-20 + steps} 19,${-steps}`);
+                steps += 1;
+                window.requestAnimationFrame(animate);
+            } else {
+                setAttrs(group, ['display', 'none']);
+            }
+        }
+        animate();
     }
     function switchPlayPauseOn() {
-        setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
-        setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
+        let steps = 10;
+        if (!s.interfaceAnimation) {
+            steps = 0;
+        }
+        function animate() {
+            if (steps >= 0) {
+                playPause1.setAttribute('points', `0,${-steps} 0,${-20 + steps} 20,-10 20,-10`);
+                playPause2.setAttribute('points', `0,${-steps} 0,${-20 + steps} 20,-10 20,-10`);
+                steps -= 1;
+                window.requestAnimationFrame(animate);
+            } else {
+                playPause1.setAttribute('points', '0,0 0,-20 20,-10 20,-10');
+                playPause2.setAttribute('points', '0,0 0,-20 20,-10 20,-10');
+            }
+        }
         setAttrs(group, ['display', 'block']);
+        animate();
+        // setAttrs(playPause1, ['points', '0,0 0,-20 10,-15 10,-5']);
+        // setAttrs(playPause2, ['points', '10,-5 10,-15 20,-10 20,-10']);
     }
 
     return {

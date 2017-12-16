@@ -6,7 +6,6 @@ function createInterfaceControler() {
     SVGAnimation.prototype.interfaceControler = function interfaceControler() {
         const playPause = createPlayPause(this.settings, this.svg);
         const refresh = createRefresh(this.settings, this.svg);
-        refresh.off();
 
         const that = this;
 
