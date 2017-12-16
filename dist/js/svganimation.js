@@ -643,11 +643,11 @@ function createRefresh(s, svg) {
     const refresh = createElNS('g');
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
-    setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', 'url(#arrow)']);
-    setAttrs(arc2, ['d', 'M20 -10 a 10 10, 90 0 1 -10 10'], ['marker-end', 'url(#arrow)']);
+    setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', 'url(#arrow)'], ['stroke-dasharray', '15']);
+    setAttrs(arc2, ['d', 'M20 -10 a 10 10, 90 0 1 -10 10'], ['marker-end', 'url(#arrow)'], ['stroke-dasharray', '15']);
     refresh.appendChild(arc1);
     refresh.appendChild(arc2);
-    setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)']);
+    setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)'], ['display', 'none']);
 
 
     // button
@@ -705,11 +705,38 @@ function createRefresh(s, svg) {
     svg.appendChild(refreshGroup);
 
     function switchRefreshOff() {
-        setAttrs(refresh, ['display', 'none']);
+        let steps = 1;
+        if (!s.interfaceAnimation) {
+            steps = 10;
+        }
+        function animate() {
+            if (steps <= 10) {
+                arc1.setAttribute('stroke-dashoffset', -steps * 1.5);
+                arc2.setAttribute('stroke-dashoffset', -steps * 1.5);
+                steps += 1;
+                window.requestAnimationFrame(animate);
+            } else {
+                setAttrs(refresh, ['display', 'none']);
+            }
+        }
+        animate();
     }
 
     function switchRefreshOn() {
         setAttrs(refresh, ['display', 'block']);
+        let steps = 10;
+        if (!s.interfaceAnimation) {
+            steps = 1;
+        }
+        function animate() {
+            if (steps >= 0) {
+                arc1.setAttribute('stroke-dashoffset', -steps * 1.5);
+                arc2.setAttribute('stroke-dashoffset', -steps * 1.5);
+                steps -= 1;
+                window.requestAnimationFrame(animate);
+            }
+        }
+        animate();
     }
 
     return {
@@ -723,7 +750,6 @@ function createInterfaceControler() {
     SVGAnimation$1.prototype.interfaceControler = function interfaceControler() {
         const playPause = createPlayPause(this.settings, this.svg);
         const refresh = createRefresh(this.settings, this.svg);
-        refresh.off();
 
         const that = this;
 
