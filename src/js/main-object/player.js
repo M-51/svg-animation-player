@@ -1,5 +1,7 @@
 import SVGAnimation from './constructor';
 
+const refreshEvent = new CustomEvent('svgRefresh');
+
 function createPlayer() {
     SVGAnimation.prototype.play = function play() {
         const that = this;
@@ -53,6 +55,7 @@ function createPlayer() {
 
             // reset all animated object to starting attributtes
             this.reset();
+            this.svg.dispatchEvent(refreshEvent);
         }
     };
     SVGAnimation.prototype.end = function end() {

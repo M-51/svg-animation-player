@@ -82,6 +82,8 @@ class SVGAnimation$1 {
     }
 }
 
+const refreshEvent = new CustomEvent('svgRefresh');
+
 function createPlayer() {
     SVGAnimation$1.prototype.play = function play() {
         const that = this;
@@ -135,6 +137,7 @@ function createPlayer() {
 
             // reset all animated object to starting attributtes
             this.reset();
+            this.svg.dispatchEvent(refreshEvent);
         }
     };
     SVGAnimation$1.prototype.end = function end() {
