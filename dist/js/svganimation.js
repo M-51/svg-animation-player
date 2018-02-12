@@ -632,7 +632,7 @@ function createPlayPause(s, svg) {
 function createRefresh(s, svg) {
     // arrows
     const marker = createElNS('marker');
-    marker.id = 'arrow';
+    marker.id = Math.random() * 10;
     setAttrs(marker, ['viewBox', '0 0 10 10'], ['refX', '1'], ['refY', '5'], ['markerWidth', '3'], ['markerHeight', '3'], ['orient', 'auto']);
 
 
@@ -646,8 +646,8 @@ function createRefresh(s, svg) {
     const refresh = createElNS('g');
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
-    setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', 'url(#arrow)'], ['stroke-dasharray', '15']);
-    setAttrs(arc2, ['d', 'M20 -10 a 10 10, 90 0 1 -10 10'], ['marker-end', 'url(#arrow)'], ['stroke-dasharray', '15']);
+    setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', `url(#${marker.id})`], ['stroke-dasharray', '15']);
+    setAttrs(arc2, ['d', 'M20 -10 a 10 10, 90 0 1 -10 10'], ['marker-end', `url(#${marker.id})`], ['stroke-dasharray', '15']);
     refresh.appendChild(arc1);
     refresh.appendChild(arc2);
     setAttrs(refresh, ['fill', 'none'], ['stroke-width', '2'], ['transform', 'translate(30, 0)'], ['display', 'none']);
