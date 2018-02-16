@@ -784,7 +784,7 @@ function getAttributes(object) {
     const { attributes } = object;
     for (let i = 0; i < attributes.length; i += 1) {
         if (attributes[i].specified) {
-            list.set(attributes[i].name, parseFloat(attributes[i].value) || attributes[i].value);
+            list.set(attributes[i].name, attributes[i].value);
         }
     }
     return list;
