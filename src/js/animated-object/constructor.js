@@ -1,4 +1,4 @@
-import { getAttributes, resetAttributes } from './helpers/attributes';
+import { getAttributes, resetAttributes, parseAttributes } from './helpers/attributes';
 import { initMatrix, decomposeMatrix } from './helpers/matrix';
 
 class AnimatedObject {
@@ -6,7 +6,8 @@ class AnimatedObject {
         this.item = item;
     }
     setVariables() {
-        this.variables = getAttributes(this.item);
+        this.startingAttributes = getAttributes(this.item);
+        this.currentAttributes = parseAttributes(this.startingAttributes);
     }
     initMatrix(settings) {
         initMatrix(this.item, settings);
@@ -14,10 +15,10 @@ class AnimatedObject {
         this.SVGTransform = this.item.transform.baseVal.getItem(0);
     }
     resetAttributes() {
-        resetAttributes(this.item, this.variables);
+        resetAttributes(this.item, this.startingAttributes);
     }
     decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
+        this.currentAttributes.transform = decomposeMatrix(this.matrix);
     }
     setMatrix(matrix) {
         this.SVGTransform.setMatrix(matrix);

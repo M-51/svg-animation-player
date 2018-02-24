@@ -2,7 +2,7 @@ import { translate, rotate, scale, translateRotate, translateScale, scaleRotate,
 
 function chooseTransformMethod(object, transform) {
     // shortcuts
-    const v = object.transform; // current position/scale/rotation object
+    const v = object.currentAttributes.transform; // current position/scale/rotation object
     const t = v.translate; // current translation
     const keys = Object.keys(transform);
 

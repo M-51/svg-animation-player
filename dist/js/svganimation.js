@@ -287,7 +287,7 @@ function translateScaleRotate(matrix, x, y, s, angle) {
 
 function chooseTransformMethod(object, transform) {
     // shortcuts
-    const v = object.transform; // current position/scale/rotation object
+    const v = object.currentAttributes.transform; // current position/scale/rotation object
     const t = v.translate; // current translation
     const keys = Object.keys(transform);
 
@@ -475,6 +475,7 @@ function createMainObjectDispatcher() {
         // array of [key, animation, objecy] items
         const propertiesToAnimateList = separate(objectList);
         // array of [animationFunction, animation (equation. range etc...)]
+        // translate user input
         const animationList = applyAnimation(propertiesToAnimateList);
         // array of animationFunction with range applied
         const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
@@ -803,6 +804,21 @@ function resetAttributes(object, attributes) {
     });
 }
 
+function parseAttributes(attributes) {
+    const variables = {};
+    attributes.forEach((value, key) => {
+        if (key !== 'id' && key !== 'class' && key !== 'transform') {
+            const parsedValue = parseFloat(value);
+            if (!Number.isNaN(parsedValue) && parsedValue.toString() === value) {
+                variables[key] = parsedValue;
+            } else {
+                variables[key] = value;
+            }
+        }
+    });
+    return variables;
+}
+
 function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
@@ -832,7 +848,8 @@ class AnimatedObject {
         this.item = item;
     }
     setVariables() {
-        this.variables = getAttributes(this.item);
+        this.startingAttributes = getAttributes(this.item);
+        this.currentAttributes = parseAttributes(this.startingAttributes);
     }
     initMatrix(settings) {
         initMatrix(this.item, settings);
@@ -840,10 +857,10 @@ class AnimatedObject {
         this.SVGTransform = this.item.transform.baseVal.getItem(0);
     }
     resetAttributes() {
-        resetAttributes(this.item, this.variables);
+        resetAttributes(this.item, this.startingAttributes);
     }
     decomposeMatrix() {
-        this.transform = decomposeMatrix(this.matrix);
+        this.currentAttributes.transform = decomposeMatrix(this.matrix);
     }
     setMatrix(matrix) {
         this.SVGTransform.setMatrix(matrix);

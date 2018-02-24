@@ -20,4 +20,19 @@ function resetAttributes(object, attributes) {
     });
 }
 
-export { getAttributes, resetAttributes };
+function parseAttributes(attributes) {
+    const variables = {};
+    attributes.forEach((value, key) => {
+        if (key !== 'id' && key !== 'class' && key !== 'transform') {
+            const parsedValue = parseFloat(value);
+            if (!Number.isNaN(parsedValue) && parsedValue.toString() === value) {
+                variables[key] = parsedValue;
+            } else {
+                variables[key] = value;
+            }
+        }
+    });
+    return variables;
+}
+
+export { getAttributes, resetAttributes, parseAttributes };
