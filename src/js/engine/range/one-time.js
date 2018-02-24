@@ -3,14 +3,14 @@ function oneTime(animationFunction, animation, deleteItemFromLoop) {
     if (animation.local) {
         rangeFunction = (t) => {
             if (t >= animation.range) {
-                animationFunction(t - animation.range);
+                animationFunction(0);
                 deleteItemFromLoop(rangeFunction);
             }
         };
     } else {
         rangeFunction = (t) => {
             if (t >= animation.range) {
-                animationFunction(t);
+                animationFunction(animation.range);
                 deleteItemFromLoop(rangeFunction);
             }
         };
