@@ -70,7 +70,7 @@ function createPlayer() {
                 if (this.settings.showInterface) {
                     this.interfaceControler.playPause.off();
                 }
-            }, 25);
+            }, 0);
         }
     };
 }
