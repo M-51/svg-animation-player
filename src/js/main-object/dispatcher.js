@@ -10,8 +10,9 @@ function createMainObjectDispatcher() {
         const propertiesToAnimateList = separate(objectList);
         // array of [animationFunction, animation (equation. range etc...)]
         // translate user input
-        interpreter(propertiesToAnimateList);
-        const animationList = applyAnimation(propertiesToAnimateList);
+        const inerpetedPropertiesToAnimateList = interpreter(propertiesToAnimateList);
+
+        const animationList = applyAnimation(inerpetedPropertiesToAnimateList);
         // array of animationFunction with range applied
         const deleteItemFromLoop = this.deleteItemFromLoop.bind(this);
         this.loop.push(...applyRange(animationList, deleteItemFromLoop));
