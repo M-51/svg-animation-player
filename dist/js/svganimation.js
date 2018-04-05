@@ -668,15 +668,97 @@ function constantsReplacer(item) {
     });
 }
 
+function linear(t, b, c, d) {
+	return c*t/d + b;
+}
+function easeInQuad(t, b, c, d) {
+	t /= d;
+	return c*t*t + b;
+}
+function easeOutQuad(t, b, c, d) {
+	t /= d;
+	return -c * t*(t-2) + b;
+}
+ function easeInOutQuad(t, b, c, d) {
+	t /= d/2;
+	if (t < 1) return c/2*t*t + b;
+	t--;
+	return -c/2 * (t*(t-2) - 1) + b;
+}
+function easeInCubic(t, b, c, d) {
+	t /= d;
+	return c*t*t*t + b;
+}
+function easeOutCubic(t, b, c, d) {
+	t /= d;
+	t--;
+	return c*(t*t*t + 1) + b;
+}
+function easeInOutCubic(t, b, c, d) {
+	t /= d/2;
+	if (t < 1) return c/2*t*t*t + b;
+	t -= 2;
+	return c/2*(t*t*t + 2) + b;
+}
+
+
+
+
+var e = Object.freeze({
+	linear: linear,
+	easeInQuad: easeInQuad,
+	easeOutQuad: easeOutQuad,
+	easeInOutQuad: easeInOutQuad,
+	easeInCubic: easeInCubic,
+	easeOutCubic: easeOutCubic,
+	easeInOutCubic: easeInOutCubic
+});
+
+function interpret(obj, range) {
+    const duration = range[1] - range[0];
+    const start = obj.from;
+    const difference = obj.to - start;
+    if (e[obj.easing]) {
+        return t => e[obj.easing](t, start, difference, duration);
+    }
+    return t => linear(t, start, difference, duration);
+}
+
+
+function fromToInterpreter(item) {
+    if (Array.isArray(item[1].range) && item[1].range.length === 2) {
+        if (item[0] === 'transform') {
+            const transform = item[1];
+            if (typeof transform.translate.x === 'object') {
+                transform.translate.x = interpret(transform.translate.x, transform.range);
+            }
+            if (typeof transform.translate.y === 'object') {
+                transform.translate.y = interpret(transform.translate.y, transform.range);
+            }
+            if (typeof transform.rotate === 'object') {
+                transform.rotate = interpret(transform.rotate, transform.range);
+            }
+            if (typeof transform.scale === 'object') {
+                transform.scale = interpret(transform.scale, transform.range);
+            }
+        } else {
+            const property = item[1];
+            if (typeof property.value === 'object') {
+                property.value = interpret(property.value, property.range);
+            }
+        }
+    }
+}
+
 function interpreter(list) {
-    const interpetedList = [];
+    const interpretedList = [];
     list.forEach((item) => {
         // replace constants with functions
         constantsReplacer(item);
-        interpetedList.push(item);
+        fromToInterpreter(item);
+        interpretedList.push(item);
     });
-    console.log(interpetedList);
-    return interpetedList;
+    return interpretedList;
 }
 
 function createMainObjectDispatcher() {
