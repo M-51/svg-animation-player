@@ -1,7 +1,9 @@
 function applyAttributeAnimation(object, key, animation) {
+    const { currentAttributes } = object;
     const animationFunction = (time) => {
         const { value } = animation;
-        object.setAttribute(key, value(time));
+        currentAttributes[key] = value(time);
+        object.setAttribute(key, currentAttributes[key]);
     };
     return animationFunction;
 }
