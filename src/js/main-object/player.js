@@ -64,9 +64,6 @@ function createPlayer() {
             const that = this;
             window.setTimeout(() => {
                 window.cancelAnimationFrame(that.timer.animationId);
-                if (that.settings.restartAtTheEnd) {
-                    that.refresh();
-                }
                 if (this.settings.showInterface) {
                     this.interfaceControler.playPause.off();
                 }

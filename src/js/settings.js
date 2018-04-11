@@ -6,7 +6,6 @@ const defaultSettings = {
     interfaceSize: 1,
     interfaceColor: '#000',
     interfacePosition: 'auto',
-    restartAtTheEnd: false,
 };
 
 

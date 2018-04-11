@@ -55,22 +55,22 @@ function chooseTransformMethod(object, transform) {
             animationFunc = (time) => {
                 t.x = transform.translate.x(time);
                 t.y = transform.translate.y(time);
-                const angle = transform.rotate(time);
-                const matrix = m.translateXYRotate(object.matrix, t.x, t.y, angle, v.scale);
+                v.rotate = transform.rotate(time);
+                const matrix = m.translateXYRotate(object.matrix, t.x, t.y, v.rotate, v.scale);
                 object.setMatrix(matrix);
             };
         } else if (transform.translate.x) {
             animationFunc = (time) => {
                 t.x = transform.translate.x(time);
-                const angle = transform.rotate(time);
-                const matrix = m.translateXRotate(object.matrix, t.x, angle, v.scale);
+                v.rotate = transform.rotate(time);
+                const matrix = m.translateXRotate(object.matrix, t.x, v.rotate, v.scale);
                 object.setMatrix(matrix);
             };
         } else if (transform.translate.y) {
             animationFunc = (time) => {
                 t.y = transform.translate.y(time);
-                const angle = transform.rotate(time);
-                const matrix = m.translateYRotate(object.matrix, t.y, angle, v.scale);
+                v.rotate = transform.rotate(time);
+                const matrix = m.translateYRotate(object.matrix, t.y, v.rotate, v.scale);
                 object.setMatrix(matrix);
             };
         }
