@@ -4,7 +4,7 @@ function interpret(obj, range, current, name) {
     const duration = range[1] - range[0];
     let start = obj.from;
     let difference = obj.to - start;
-    const easingFunction = e[obj.easing] || e.linear;
+    const easingFunction = e[obj.easing] || e.easeInOutQuad;
 
     if (start) {
         return t => easingFunction(t, start, difference, duration);

@@ -1,7 +1,7 @@
 function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
+    if (svgTransform.numberOfItems) {
         svgTransform.consolidate();
         ({ matrix } = svgTransform.getItem(0));
     } else {

@@ -716,7 +716,7 @@ function interpret(obj, range, current, name) {
     const duration = range[1] - range[0];
     let start = obj.from;
     let difference = obj.to - start;
-    const easingFunction = e[obj.easing] || linear;
+    const easingFunction = e[obj.easing] || easeInOutQuad;
 
     if (start) {
         return t => easingFunction(t, start, difference, duration);
@@ -1136,7 +1136,7 @@ function parseAttributes(attributes) {
 function initMatrix(object, svg) {
     let matrix = null;
     const svgTransform = object.transform.baseVal;
-    if (svgTransform.length) {
+    if (svgTransform.numberOfItems) {
         svgTransform.consolidate();
         ({ matrix } = svgTransform.getItem(0));
     } else {
