@@ -67,7 +67,7 @@ function createPlayer() {
                 if (this.settings.showInterface) {
                     this.interfaceControler.playPause.off();
                 }
-            }, 0);
+            }, 10);
         }
     };
 }

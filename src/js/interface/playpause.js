@@ -8,7 +8,6 @@ function createPlayPause(s, svg) {
     setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
     setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
 
-
     group.appendChild(playPause1);
     group.appendChild(playPause2);
 

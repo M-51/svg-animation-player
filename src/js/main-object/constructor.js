@@ -1,7 +1,7 @@
 import compileSettings from '../settings';
 
 class SVGAnimation {
-    constructor(settings) {
+    constructor(settings, context = document) {
         this.status = 'not started';
         this.timer = {
             animationId: 0,
@@ -11,6 +11,7 @@ class SVGAnimation {
         this.settings = compileSettings(settings);
         this.objectList = new Set();
         this.loop = [];
+        this.context = context;
     }
     reset() {
         this.objectList.forEach((object) => {

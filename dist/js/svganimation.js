@@ -58,7 +58,7 @@ function compileSettings(settings) {
 }
 
 class SVGAnimation$1 {
-    constructor(settings) {
+    constructor(settings, context = document) {
         this.status = 'not started';
         this.timer = {
             animationId: 0,
@@ -68,6 +68,7 @@ class SVGAnimation$1 {
         this.settings = compileSettings(settings);
         this.objectList = new Set();
         this.loop = [];
+        this.context = context;
     }
     reset() {
         this.objectList.forEach((object) => {
@@ -148,7 +149,7 @@ function createPlayer() {
                 if (this.settings.showInterface) {
                     this.interfaceControler.playPause.off();
                 }
-            }, 0);
+            }, 10);
         }
     };
 }
@@ -814,7 +815,6 @@ function createPlayPause(s, svg) {
     setAttrs(playPause1, ['points', '0,0 0,-20 20,-10 20,-10']);
     setAttrs(playPause2, ['points', '0,0 0,-20 20,-10 20,-10']);
 
-
     group.appendChild(playPause1);
     group.appendChild(playPause2);
 
@@ -961,6 +961,7 @@ function createRefresh(s, svg) {
 
     // icons
     const refresh = createElNS('g');
+    refresh.className.baseVal = 'interface';
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
     setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', `url(#${marker.id})`], ['stroke-dasharray', '15']);
@@ -1193,9 +1194,9 @@ function createMainObjectAddFunction() {
                 throw new Error(`Object ${object} must have "object" property. which is query selector or actual DOM object`);
             }
             // declare DOM object based on user input
-            const DOMObject = typeof object.object === 'string' ? document.querySelector(object.object) : object.object;
+            const DOMObject = typeof object.object === 'string' ? this.context.querySelector(object.object) : object.object;
             // check DOM object exsist
-            if (!document.contains(DOMObject)) {
+            if (!this.context.contains(DOMObject)) {
                 throw new Error(`Cannot find ${typeof object.object === 'string' ? `DOM element that match "${object.object}" query selector` : `${object.object} in DOM`}`);
             }
             // create animated object

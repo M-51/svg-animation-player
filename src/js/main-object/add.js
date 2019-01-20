@@ -11,9 +11,9 @@ function createMainObjectAddFunction() {
                 throw new Error(`Object ${object} must have "object" property. which is query selector or actual DOM object`);
             }
             // declare DOM object based on user input
-            const DOMObject = typeof object.object === 'string' ? document.querySelector(object.object) : object.object;
+            const DOMObject = typeof object.object === 'string' ? this.context.querySelector(object.object) : object.object;
             // check DOM object exsist
-            if (!document.contains(DOMObject)) {
+            if (!this.context.contains(DOMObject)) {
                 throw new Error(`Cannot find ${typeof object.object === 'string' ? `DOM element that match "${object.object}" query selector` : `${object.object} in DOM`}`);
             }
             // create animated object

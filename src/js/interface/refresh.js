@@ -15,6 +15,7 @@ function createRefresh(s, svg) {
 
     // icons
     const refresh = createElNS('g');
+    refresh.className.baseVal = 'interface';
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
     setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', `url(#${marker.id})`], ['stroke-dasharray', '15']);
