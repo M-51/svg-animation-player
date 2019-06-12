@@ -6,7 +6,7 @@
     },
 
     "globals": {
-        "SVGAnimation": true
+        "SVGAnimationPlayer": true
     },
 
     "rules":{

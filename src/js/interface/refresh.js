@@ -4,6 +4,7 @@ function createRefresh(s, svg) {
     // arrows
     const marker = createElNS('marker');
     marker.id = Math.random() * 10;
+    marker.className.baseVal = 'marker';
     setAttrs(marker, ['viewBox', '0 0 10 10'], ['refX', '1'], ['refY', '5'], ['markerWidth', '3'], ['markerHeight', '3'], ['orient', 'auto']);
 
 
@@ -15,7 +16,7 @@ function createRefresh(s, svg) {
 
     // icons
     const refresh = createElNS('g');
-    refresh.className.baseVal = 'interface';
+    refresh.className.baseVal = 'interface refresh';
     const arc1 = createElNS('path');
     const arc2 = createElNS('path');
     setAttrs(arc1, ['d', 'M0 -10 a 10 10, 90 0 1 10 -10'], ['marker-end', `url(#${marker.id})`], ['stroke-dasharray', '15']);
@@ -48,9 +49,12 @@ function createRefresh(s, svg) {
     }
 
     function addUserSettings() {
-    // set color
-        setAttrs(refresh, ['stroke', s.interfaceColor]);
-        setAttrs(marker, ['fill', s.interfaceColor]);
+        // set color
+        if (s.interfaceColor !== 'none') {
+            setAttrs(refresh, ['stroke', s.interfaceColor]);
+            setAttrs(marker, ['fill', s.interfaceColor]);
+        }
+
         // set interface size
         const { matrix } = refreshGroup.transform.baseVal.getItem(0);
         matrix.a *= s.interfaceSize;

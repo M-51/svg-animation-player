@@ -1,35 +1,33 @@
-import SVGAnimation from './constructor';
 import createPlayPause from '../interface/playpause';
 import createRefresh from '../interface/refresh';
 
-function createInterfaceControler() {
-    SVGAnimation.prototype.interfaceControler = function interfaceControler() {
-        const playPause = createPlayPause(this.settings, this.svg);
-        const refresh = createRefresh(this.settings, this.svg);
 
-        const that = this;
+function interfaceControler(reference) {
+    const playPause = createPlayPause(reference.settings, reference.svg);
+    const refresh = createRefresh(reference.settings, reference.svg);
 
-        function controlPlayPause() {
-            if (that.status === 'not started' || that.status === 'paused') {
-                that.play();
-            } else if (that.status === 'playing') {
-                that.pause();
-            }
+
+    function controlPlayPause() {
+        if (reference.status === 'not started' || reference.status === 'paused') {
+            reference.play();
+        } else if (reference.status === 'playing') {
+            reference.pause();
         }
+    }
 
-        function controlRefresh() {
-            if (that.status === 'playing' || that.status === 'paused' || that.status === 'ended') {
-                that.refresh();
-            }
+    function controlRefresh() {
+        if (reference.status === 'playing' || reference.status === 'paused' || reference.status === 'ended') {
+            reference.refresh();
         }
-        playPause.button.addEventListener('click', controlPlayPause, false);
-        refresh.button.addEventListener('click', controlRefresh, false);
+    }
+    playPause.button.addEventListener('click', controlPlayPause, false);
+    refresh.button.addEventListener('click', controlRefresh, false);
 
-        return {
-            playPause,
-            refresh,
-        };
+    return {
+        playPause,
+        refresh,
     };
 }
 
-export default createInterfaceControler;
+
+export default interfaceControler;

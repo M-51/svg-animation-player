@@ -2,6 +2,7 @@ import { createElNS, setAttrs } from '../utils';
 
 function createPlayPause(s, svg) {
     const group = createElNS('g');
+    group.className.baseVal = 'play-pause';
     const playPause1 = createElNS('polygon');
     const playPause2 = createElNS('polygon');
 
@@ -35,7 +36,9 @@ function createPlayPause(s, svg) {
 
     function addUserSettings() {
         // set color
-        setAttrs(group, ['fill', s.interfaceColor]);
+        if (s.interfaceColor !== 'none') {
+            setAttrs(group, ['fill', s.interfaceColor]);
+        }
 
         // set interface size
         const { matrix } = playPauseGroup.transform.baseVal.getItem(0);
