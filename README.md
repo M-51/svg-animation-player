@@ -3,7 +3,7 @@
 Simple animation library for SVG. With player included.
 
 ## Install
-####NPM
+#### NPM
 ```javascript
 $ npm install svg-animation-player --save
 ```
@@ -64,14 +64,14 @@ test.add({
 [Example demo](https://m-51.github.io/svg-animation/readme-example/readme.svg)
 
 
-####Options
+#### Options
 * `showInterface` - Boolean (True/False), default - `True`, Enable or disable interface
 * `interfaceAnimation` - Boolean (True/False), default - `True`, Enable or diable interface animation
 * `interfaceSize` - Number (0 - 10), default - `1`, Size of interface
 * `interfaceColor` - Color (HTML color or "none"), default - `#000`, Color of interface or `none` - Use CSS to style
 * `interfacePosition` - Array ([x, y]) or `auto` (bottom left), default `auto`, Position of interface
 
-####Methods
+#### Methods
 * `SVGAnimationPlayer.play()` - Start animation
 * `SVGAnimationPlayer.pause()` - Pause animation
 * `SVGAnimationPlayer.end()` - End animation
