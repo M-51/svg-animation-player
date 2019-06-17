@@ -7,6 +7,10 @@
     "type": "git",
     "url": "git+https://github.com/M-51/svg-animation-player.git"
   },
+  "scripts": {
+    "build": "gulp build",
+    "test": "jest"
+  },
   "keywords": [
     "svg",
     "animation",
@@ -17,14 +21,30 @@
   "bugs": {
     "url": "https://github.com/M-51/svg-animation-player/issues"
   },
+  "babel": {
+    "env": {
+      "test": {
+        "plugins": [
+          "transform-es2015-modules-commonjs"
+        ]
+      }
+    }
+  },
+  "jest": {
+    "preset": "jest-puppeteer"
+  },
   "homepage": "https://github.com/M-51/svg-animation-player#readme",
   "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
     "gulp": "^4.0.2",
     "gulp-rename": "^1.4.0",
     "gulp-uglify-es": "^1.0.4",
+    "jest": "^24.8.0",
+    "jest-puppeteer": "^4.2.0",
+    "puppeteer": "^1.17.0",
     "rollup": "^1.15.1"
   },
   "dependencies": {}

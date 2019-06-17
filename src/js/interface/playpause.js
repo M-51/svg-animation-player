@@ -14,6 +14,7 @@ function createPlayPause(s, svg) {
 
     // button
     const button = createElNS('rect');
+    button.id = 'play-pause';
     setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
 
     // group button and icon

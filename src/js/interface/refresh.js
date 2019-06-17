@@ -28,6 +28,7 @@ function createRefresh(s, svg) {
 
     // button
     const button = createElNS('rect');
+    button.id = 'refresh';
     setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
 
     // group button and icon

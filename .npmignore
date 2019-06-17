@@ -1,6 +1,12 @@
+### dirs ###
 node_modules
 src
 examples
+test
 
+### files ###
 gulpfile.js
+.eslintrc.json
+.eslintignore
+dist/svganimationplayer.js.map
 Todo

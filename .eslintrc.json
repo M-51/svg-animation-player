@@ -2,11 +2,17 @@
     "extends": "airbnb-base",
 
     "env": {
-        "browser": true
+        "browser": true,
+        "jest": true
     },
 
     "globals": {
-        "SVGAnimationPlayer": true
+        "SVGAnimationPlayer": true,
+        "page": true,
+        "browser": true,
+        "context": true,
+        "jestPuppeteer": true,
+        "testSvg": true
     },
 
     "rules":{

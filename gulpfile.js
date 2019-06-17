@@ -5,9 +5,9 @@ const rename = require('gulp-rename');
 
 
 function minify() {
-    return gulp.src('./dist/svganimation.js')
+    return gulp.src('./dist/svganimationplayer.js')
         .pipe(uglify())
-        .pipe(rename('svganimation.min.js'))
+        .pipe(rename('svganimationplayer.min.js'))
         .pipe(gulp.dest('./dist/'));
 }
 
@@ -16,7 +16,7 @@ async function bundle() {
         input: './src/js/index.js',
     });
     await bund.write({
-        file: './dist/svganimation.js',
+        file: './dist/svganimationplayer.js',
         format: 'umd',
         name: 'SVGAnimationPlayer',
         sourcemap: true,

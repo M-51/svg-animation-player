@@ -805,6 +805,7 @@
 
         // button
         const button = createElNS('rect');
+        button.id = 'play-pause';
         setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0']);
 
         // group button and icon
@@ -961,6 +962,7 @@
 
         // button
         const button = createElNS('rect');
+        button.id = 'refresh';
         setAttrs(button, ['x', '0'], ['y', '-20'], ['width', '20'], ['height', '20'], ['fill-opacity', '0'], ['transform', 'translate(30, 0)']);
 
         // group button and icon
@@ -1239,4 +1241,4 @@
     return SVGAnimationPlayer;
 
 }));
-//# sourceMappingURL=svganimation.js.map
+//# sourceMappingURL=svganimationplayer.js.map

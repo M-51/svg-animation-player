@@ -1,6 +1,10 @@
-# svg-animation
+# svg-animation-player
 
-Simple animation framework for SVG.
+Simple animation library for SVG. With player included.
+
+## Install
+
+
 
 ## Usage
 
