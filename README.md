@@ -13,12 +13,13 @@ $ npm install svg-animation-player --save
 #### CDN
 In your HTML file, load simply by:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/svg-animation-player@0.1.4/dist/svganimationplayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg-animation-player@0.1.5/dist/svganimationplayer.min.js"></script>
 ```
 
 #### Manual
 Download file https://raw.githubusercontent.com/M-51/svg-animation-player/master/dist/svganimationplayer.min.js
-Your HTML
+
+Your HTML:
 ```html
 <script src="svganimationplayer.min.js"></script>
 ```
