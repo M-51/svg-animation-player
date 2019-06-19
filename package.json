@@ -2,7 +2,7 @@
   "name": "svg-animation-player",
   "version": "0.1.4",
   "description": "Library for animating SVGs, player included",
-  "main": "dist/svganimation.js",
+  "main": "dist/svganimationplayer.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/M-51/svg-animation-player.git"

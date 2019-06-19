@@ -34,4 +34,10 @@ function findSVGParent(element) {
     throw new Error('Cannot find SVG element! All animated elements must have SVG parent');
 }
 
-export { undef, createElNS, setAttrs, isNumeric, findSVGParent };
+export {
+    undef,
+    createElNS,
+    setAttrs,
+    isNumeric,
+    findSVGParent,
+};

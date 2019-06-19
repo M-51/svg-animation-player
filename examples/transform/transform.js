@@ -1,12 +1,12 @@
 const ex1 = new SVGAnimationPlayer();
 ex1.add({
-    object: '#ex3',
+    object: '#ex1',
     animation: {
         transform: {
             range: [0, 3],
             translate: {
                 x: {
-                    to: 100,
+                    to: 80,
                 },
                 y: t => 10 * Math.sin(4 * t),
             },

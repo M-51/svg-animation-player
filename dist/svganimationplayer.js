@@ -1121,7 +1121,7 @@
             this.objectList.add(tempObject);
         });
         // enable interface if needed
-        if (this.settings.showInterface) {
+        if (!this.interfaceControler && this.settings.showInterface) {
             this.interfaceControler = interfaceControler(this);
         }
         dispatcher(tempObjectList, this);

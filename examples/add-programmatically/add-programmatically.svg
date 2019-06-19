@@ -1,0 +1,14 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <rect class="ex8-rect" y="10" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="18" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="26" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="34" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="42" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="50" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="58" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="66" x="10" width="5" height="5" />
+        <rect class="ex8-rect" y="74" x="10" width="5" height="5" />
+    <script type="text/ecmascript" xlink:href="../../dist/svganimationplayer.js" />
+    <script type="text/ecmascript" xlink:href="add-programmatically.js" />
+</svg>
