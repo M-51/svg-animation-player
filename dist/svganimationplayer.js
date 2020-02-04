@@ -2,7 +2,7 @@
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     (global = global || self, global.SVGAnimationPlayer = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
     // check if argument is undefined
     function undef(item) {
@@ -693,6 +693,7 @@
     }
 
     var e = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         linear: linear,
         easeInQuad: easeInQuad,
         easeOutQuad: easeOutQuad,
@@ -1240,5 +1241,5 @@
 
     return SVGAnimationPlayer;
 
-}));
+})));
 //# sourceMappingURL=svganimationplayer.js.map

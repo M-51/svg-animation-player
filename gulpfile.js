@@ -1,12 +1,12 @@
 const gulp = require('gulp');
 const rollup = require('rollup');
-const uglify = require('gulp-uglify-es').default;
 const rename = require('gulp-rename');
+const terser = require('gulp-terser');
 
 
 function minify() {
     return gulp.src('./dist/svganimationplayer.js')
-        .pipe(uglify())
+        .pipe(terser())
         .pipe(rename('svganimationplayer.min.js'))
         .pipe(gulp.dest('./dist/'));
 }

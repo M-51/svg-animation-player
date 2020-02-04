@@ -16,7 +16,7 @@ describe('Animation', () => {
     });
 
     it('should end animation with status "ended" ', async () => {
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         const status = await page.evaluate(() => testSvg.status);
         expect(status).toBe('ended');
     });
@@ -34,7 +34,7 @@ describe('Animation', () => {
     });
 
     it('should refresh animation with status "not started" ', async () => {
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         const status = await page.evaluate(() => testSvg.status);
         expect(status).toBe('not started');
     });
